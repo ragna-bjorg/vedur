@@ -725,7 +725,6 @@
 <div class="header">
     <h1><a href="https://www.ragna.is">Ragna.is</a></h1>
     <div style="font-family:Georgia,serif; color:var(--text-dark); font-size:0.95rem; margin-top:0.8rem;">Ártúnsholt — Reykjavík</div>
-    <div class="subtitle" id="stationName">Veðurstöð</div>
 </div>
 
 <div id="forecast" style="display:none;">
@@ -1111,9 +1110,6 @@
     // ============================================================
     function renderDashboard(data) {
         const d = data.lastData;
-        const name = data.info ? data.info.name : 'Veðurstöð';
-        document.getElementById('stationName').textContent = name;
-
         const app = document.getElementById('app');
         app.innerHTML = `
             <div class="last-updated">
