@@ -1684,8 +1684,10 @@
                 if (stationLat && stationLon) {
                     setTimeout(() => fetchForecastComparison(stationLat, stationLon, history), 2000);
                 }
-                // Fetch yearly extremes after 5s (rate limit)
-                setTimeout(fetchYearlyExtremes, 5000);
+                // Show 24h high/low immediately from loaded history
+                showExtremesFromHistory(history);
+                // Then fetch more historical data after 30s
+                setTimeout(fetchYearlyExtremes, 30000);
             }
         } catch (err) {
             console.warn('Gat ekki hlaðið sögu:', err.message);
@@ -1697,50 +1699,80 @@
     // ============================================================
     //  YEARLY HIGH/LOW TEMPERATURE
     // ============================================================
-    async function fetchYearlyExtremes() {
-        if (!macAddress) return;
 
+    // Immediately show high/low from the already-loaded 24h history
+    function showExtremesFromHistory(history) {
         let highF = -Infinity;
         let lowF = Infinity;
         let count = 0;
+        for (let i = 0; i < history.length; i++) {
+            const t = history[i].tempf;
+            if (t != null) {
+                if (t > highF) highF = t;
+                if (t < lowF) lowF = t;
+                count++;
+            }
+        }
+        if (count > 0) {
+            updateExtremes(highF, lowF);
+        }
+    }
+
+    // Track global extremes so background fetch can update them
+    let yearHighF = -Infinity;
+    let yearLowF = Infinity;
+
+    function updateExtremes(highF, lowF) {
+        if (highF > yearHighF) yearHighF = highF;
+        if (lowF < yearLowF) yearLowF = lowF;
+        const highEl = document.getElementById('yearHigh');
+        const lowEl = document.getElementById('yearLow');
+        if (highEl) highEl.textContent = convertTemp(yearHighF);
+        if (lowEl) lowEl.textContent = convertTemp(yearLowF);
+    }
+
+    // Background fetch: gentle approach with long delays, fewer batches
+    async function fetchYearlyExtremes() {
+        if (!macAddress) return;
+
         const now = new Date();
         const yearStart = new Date(now.getFullYear(), 0, 1);
-        let endDate = now;
+        let endDate = new Date(now.getTime() - 86400000); // Start from yesterday (today already loaded)
 
         try {
-            // Fetch in batches of 288 records, going back to Jan 1st
-            // Respect rate limit: wait 3s between each request
-            for (let batch = 0; batch < 40; batch++) {
+            for (let batch = 0; batch < 90; batch++) {
+                // Wait 6s between requests to stay well within rate limit
+                await new Promise(r => setTimeout(r, 6000));
+
                 const url = `https://rt.ambientweather.net/v1/devices/${macAddress}?apiKey=${CONFIG.API_KEY}&applicationKey=${CONFIG.APP_KEY}&limit=288&endDate=${endDate.getTime()}`;
-                const res = await fetchWithRetry(url);
+                const res = await fetch(url);
+
+                if (res.status === 429) {
+                    // Rate limited — wait 15s and retry this batch
+                    await new Promise(r => setTimeout(r, 15000));
+                    batch--; // Retry same batch
+                    continue;
+                }
                 if (!res.ok) break;
 
                 const data = await res.json();
                 if (!data || data.length === 0) break;
 
+                let batchHigh = -Infinity;
+                let batchLow = Infinity;
                 for (let i = 0; i < data.length; i++) {
                     const t = data[i].tempf;
                     if (t != null) {
-                        if (t > highF) highF = t;
-                        if (t < lowF) lowF = t;
-                        count++;
+                        if (t > batchHigh) batchHigh = t;
+                        if (t < batchLow) batchLow = t;
                     }
                 }
+                updateExtremes(batchHigh, batchLow);
 
                 // Move endDate to before the oldest record in this batch
                 const oldest = new Date(data[data.length - 1].date);
-                if (oldest <= yearStart) break; // We've gone back far enough
+                if (oldest <= yearStart) break;
                 endDate = new Date(oldest.getTime() - 1000);
-
-                // Wait 3s between requests to respect rate limit
-                await new Promise(r => setTimeout(r, 3000));
-            }
-
-            if (count > 0) {
-                const highEl = document.getElementById('yearHigh');
-                const lowEl = document.getElementById('yearLow');
-                if (highEl) highEl.textContent = convertTemp(highF);
-                if (lowEl) lowEl.textContent = convertTemp(lowF);
             }
         } catch (err) {
             console.warn('Gat ekki hlaðið ársmælingum:', err.message);
