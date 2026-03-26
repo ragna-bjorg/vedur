@@ -132,7 +132,7 @@
         .dashboard {
             max-width: 1000px;
             margin: 0 auto;
-            padding: 1rem;
+            padding: 0 1rem;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1rem;
@@ -213,6 +213,7 @@
             font-size: 1rem;
             font-weight: 600;
             color: var(--text-dark);
+            white-space: nowrap;
         }
 
         .metric-value.accent { color: var(--accent); }
@@ -287,6 +288,95 @@
             font-size: 0.85rem;
         }
 
+        /* Vindátt compass card */
+        .wind-dir-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            padding: 1rem 0;
+        }
+
+        .wind-dir-compass {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            flex-shrink: 0;
+        }
+
+        .compass-ring {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            position: relative;
+            background: var(--bg);
+        }
+
+        .compass-label {
+            position: absolute;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-dim);
+        }
+
+        .cl-n { top: 4px; left: 50%; transform: translateX(-50%); color: var(--accent); }
+        .cl-s { bottom: 4px; left: 50%; transform: translateX(-50%); }
+        .cl-e { right: 6px; top: 50%; transform: translateY(-50%); }
+        .cl-w { left: 6px; top: 50%; transform: translateY(-50%); }
+
+        .compass-arrow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 60px;
+            margin-left: -2px;
+            margin-top: -30px;
+            transform-origin: center center;
+        }
+
+        .arrow-head {
+            width: 0;
+            height: 0;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-bottom: 24px solid var(--accent);
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .arrow-tail {
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 20px solid var(--text-dim);
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0.4;
+        }
+
+        .wind-dir-info {
+            text-align: center;
+        }
+
+        .wind-dir-deg {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .wind-dir-name {
+            font-size: 1rem;
+            color: var(--text-dim);
+            margin-top: 0.2rem;
+        }
+
         /* History section */
         .history-section {
             max-width: 1000px;
@@ -317,6 +407,26 @@
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 1.5rem;
+        }
+
+        .solar-card-content {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1rem 0;
+        }
+
+        .solar-icon {
+            font-size: 3.5rem;
+            line-height: 1;
+        }
+
+        .solar-times {
+            flex: 1;
+        }
+
+        .solar-times .metric-row {
+            padding: 0.4rem 0;
         }
 
         .chart-card .card-header {
@@ -772,6 +882,14 @@
                 <div class="card-header">Loftþrýstingur</div>
                 <canvas id="chartPressure"></canvas>
             </div>
+            <div class="chart-card">
+                <div class="card-header">Vindátt</div>
+                <canvas id="chartWindDir"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="card-header">Sólargangur</div>
+                <canvas id="chartSunMoon"></canvas>
+            </div>
         </div>
     </div>
 </div>
@@ -1114,6 +1232,208 @@
                 }
             }
         });
+
+        // -- Wind Direction (scatter) --
+        const ctxWindDir = document.getElementById('chartWindDir').getContext('2d');
+        charts.windDir = new Chart(ctxWindDir, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Vindátt',
+                    data: sorted.map((d, i) => ({ x: i, y: d.winddir != null ? d.winddir : null })),
+                    backgroundColor: 'rgba(90, 143, 168, 0.6)',
+                    borderColor: 'rgba(90, 143, 168, 0.6)',
+                    pointRadius: 2.5,
+                    pointHoverRadius: 5,
+                }]
+            },
+            options: {
+                ...chartDefaults,
+                plugins: {
+                    ...chartDefaults.plugins,
+                    legend: { display: true, labels: { color: '#888', boxWidth: 12, padding: 15, font: { size: 10, family: 'Verdana' } } },
+                    tooltip: {
+                        ...chartDefaults.plugins.tooltip,
+                        callbacks: {
+                            title: (items) => labels[items[0].dataIndex] || '',
+                            label: (item) => {
+                                const deg = item.raw.y;
+                                return deg != null ? degToCompass(deg) + ' (' + deg + '°)' : '—';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ...chartDefaults.scales.x,
+                        type: 'linear',
+                        ticks: {
+                            ...chartDefaults.scales.x.ticks,
+                            callback: (v) => labels[Math.round(v)] || '',
+                            maxTicksLimit: 8,
+                        },
+                        min: 0,
+                        max: sorted.length - 1,
+                    },
+                    y: {
+                        ...chartDefaults.scales.y,
+                        min: 0,
+                        max: 360,
+                        ticks: {
+                            ...chartDefaults.scales.y.ticks,
+                            stepSize: 90,
+                            callback: (v) => {
+                                if (v === 0 || v === 360) return 'N';
+                                if (v === 90) return 'A';
+                                if (v === 180) return 'S';
+                                if (v === 270) return 'V';
+                                return '';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // -- Sun & Moon Height --
+        renderSunMoonChart(sorted, labels);
+    }
+
+    // ============================================================
+    //  SUN & MOON POSITION CALCULATIONS
+    // ============================================================
+    function getSolarElevation(date, lat, lon) {
+        const rad = Math.PI / 180;
+        const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+        const hours = date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
+
+        // Solar declination
+        const decl = -23.45 * Math.cos(rad * 360 / 365 * (dayOfYear + 10));
+
+        // Equation of time (approximate)
+        const B = rad * 360 / 365 * (dayOfYear - 81);
+        const eot = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+
+        // Solar time
+        const solarNoon = 12 - lon / 15 - eot / 60;
+        const offset = -date.getTimezoneOffset() / 60;
+        const solarTime = hours - offset + lon / 15 + eot / 60 - 12;
+        const hourAngle = solarTime * 15;
+
+        // Elevation
+        const sinElev = Math.sin(lat * rad) * Math.sin(decl * rad) +
+                         Math.cos(lat * rad) * Math.cos(decl * rad) * Math.cos(hourAngle * rad);
+        return Math.asin(sinElev) / rad;
+    }
+
+    function getMoonElevation(date, lat, lon) {
+        const rad = Math.PI / 180;
+        // Simplified lunar position calculation
+        const J2000 = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
+        const d = (date.getTime() - J2000.getTime()) / 86400000;
+
+        // Moon orbital elements (simplified)
+        const L = (218.316 + 13.176396 * d) % 360;       // Mean longitude
+        const M = (134.963 + 13.064993 * d) % 360;       // Mean anomaly
+        const F = (93.272 + 13.229350 * d) % 360;        // Mean distance
+
+        // Ecliptic longitude and latitude
+        const lonMoon = L + 6.289 * Math.sin(M * rad);
+        const latMoon = 5.128 * Math.sin(F * rad);
+
+        // Ecliptic to equatorial
+        const obliq = 23.439 - 0.0000004 * d;
+        const cosObliq = Math.cos(obliq * rad);
+        const sinObliq = Math.sin(obliq * rad);
+
+        const lonRad = lonMoon * rad;
+        const latRad = latMoon * rad;
+
+        const RA = Math.atan2(
+            Math.sin(lonRad) * cosObliq - Math.tan(latRad) * sinObliq,
+            Math.cos(lonRad)
+        );
+        const dec = Math.asin(
+            Math.sin(latRad) * cosObliq + Math.cos(latRad) * sinObliq * Math.sin(lonRad)
+        );
+
+        // Hour angle
+        const hours = date.getUTCHours() + date.getUTCMinutes() / 60;
+        const GMST = (280.46061837 + 360.98564736629 * d + hours * 15) % 360;
+        const LST = (GMST + lon) * rad;
+        const HA = LST - RA;
+
+        // Altitude
+        const sinAlt = Math.sin(lat * rad) * Math.sin(dec) +
+                        Math.cos(lat * rad) * Math.cos(dec) * Math.cos(HA);
+        return Math.asin(sinAlt) / rad;
+    }
+
+    function renderSunMoonChart(sorted, labels) {
+        const lat = stationLat || 64.13;
+        const lon = stationLon || -21.90;
+
+        const sunData = sorted.map(d => {
+            const dt = new Date(d.date);
+            return getSolarElevation(dt, lat, lon);
+        });
+
+        const moonData = sorted.map(d => {
+            const dt = new Date(d.date);
+            return getMoonElevation(dt, lat, lon);
+        });
+
+        const ctxSunMoon = document.getElementById('chartSunMoon').getContext('2d');
+        charts.sunMoon = new Chart(ctxSunMoon, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Hæð sólar',
+                        data: sunData,
+                        borderColor: '#d4a843',
+                        backgroundColor: 'rgba(212, 168, 67, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHitRadius: 10,
+                        fill: false,
+                        tension: 0.4,
+                    },
+                    {
+                        label: 'Hæð tungls',
+                        data: moonData,
+                        borderColor: '#b0b0b0',
+                        backgroundColor: 'rgba(176, 176, 176, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHitRadius: 10,
+                        fill: false,
+                        tension: 0.4,
+                    }
+                ]
+            },
+            options: {
+                ...chartDefaults,
+                plugins: {
+                    ...chartDefaults.plugins,
+                    legend: { display: true, labels: { color: '#888', boxWidth: 12, padding: 15, font: { size: 10, family: 'Verdana' } } },
+                    tooltip: {
+                        ...chartDefaults.plugins.tooltip,
+                        callbacks: {
+                            label: (item) => item.dataset.label + ': ' + item.raw.toFixed(1) + '°'
+                        }
+                    }
+                },
+                scales: {
+                    ...chartDefaults.scales,
+                    y: {
+                        ...chartDefaults.scales.y,
+                        ticks: { ...chartDefaults.scales.y.ticks, callback: v => v + '°' }
+                    }
+                }
+            }
+        });
     }
 
     // ============================================================
@@ -1142,8 +1462,12 @@
                         </div>
                     </div>
                     <div class="metric-row">
-                        <span class="metric-label">Inni</span>
-                        <span class="metric-value accent">${convertTemp(d.tempinf)}</span>
+                        <span class="metric-label">Hæst á árinu</span>
+                        <span class="metric-value accent" id="yearHigh">—</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Lægst á árinu</span>
+                        <span class="metric-value cool" id="yearLow">—</span>
                     </div>
                 </div>
 
@@ -1202,10 +1526,6 @@
                         <span class="metric-value accent">${d.humidity != null ? d.humidity + '%' : '—'}</span>
                     </div>
                     <div class="metric-row">
-                        <span class="metric-label">Inni</span>
-                        <span class="metric-value">${d.humidityin != null ? d.humidityin + '%' : '—'}</span>
-                    </div>
-                    <div class="metric-row">
                         <span class="metric-label">Daggarmark</span>
                         <span class="metric-value">${convertTemp(d.dewPoint)}</span>
                     </div>
@@ -1215,12 +1535,8 @@
                 <div class="card">
                     <div class="card-header">Loftþrýstingur</div>
                     <div class="metric-row">
-                        <span class="metric-label">Hlutfallslegur</span>
+                        <span class="metric-label">Loftþrýstingur</span>
                         <span class="metric-value green">${convertPressure(d.baromrelin)}</span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">Heildar</span>
-                        <span class="metric-value">${convertPressure(d.baromabsin)}</span>
                     </div>
                 </div>
 
@@ -1237,8 +1553,10 @@
                     </div>
                 </div>
 
+
             </div>
         `;
+
     }
 
     // ============================================================
@@ -1308,13 +1626,15 @@
 
             macAddress = device.macAddress;
 
-            // Fetch forecast using station coordinates
+            // Store coordinates for forecast comparison
             if (device.info && device.info.coords && device.info.coords.coords) {
-                const lat = device.info.coords.coords.lat;
-                const lon = device.info.coords.coords.lon;
-                stationLat = lat;
-                stationLon = lon;
-                fetchForecast(lat, lon);
+                stationLat = device.info.coords.coords.lat;
+                stationLon = device.info.coords.coords.lon;
+            }
+
+            // Fetch forecast from Open-Meteo
+            if (stationLat && stationLon) {
+                fetchForecast(stationLat, stationLon);
             }
 
             // Wait 2 seconds before history request to respect rate limit
@@ -1362,11 +1682,66 @@
                 if (stationLat && stationLon) {
                     setTimeout(() => fetchForecastComparison(stationLat, stationLon, history), 2000);
                 }
+                // Fetch yearly extremes after 5s (rate limit)
+                setTimeout(fetchYearlyExtremes, 5000);
             }
         } catch (err) {
             console.warn('Gat ekki hlaðið sögu:', err.message);
             // Retry history after 15 seconds
             setTimeout(fetchHistory, 15000);
+        }
+    }
+
+    // ============================================================
+    //  YEARLY HIGH/LOW TEMPERATURE
+    // ============================================================
+    async function fetchYearlyExtremes() {
+        if (!macAddress) return;
+
+        let highF = -Infinity;
+        let lowF = Infinity;
+        let count = 0;
+        const now = new Date();
+        const yearStart = new Date(now.getFullYear(), 0, 1);
+        let endDate = now;
+
+        try {
+            // Fetch in batches of 288 records, going back to Jan 1st
+            // Respect rate limit: wait 3s between each request
+            for (let batch = 0; batch < 40; batch++) {
+                const url = `https://rt.ambientweather.net/v1/devices/${macAddress}?apiKey=${CONFIG.API_KEY}&applicationKey=${CONFIG.APP_KEY}&limit=288&endDate=${endDate.getTime()}`;
+                const res = await fetchWithRetry(url);
+                if (!res.ok) break;
+
+                const data = await res.json();
+                if (!data || data.length === 0) break;
+
+                for (let i = 0; i < data.length; i++) {
+                    const t = data[i].tempf;
+                    if (t != null) {
+                        if (t > highF) highF = t;
+                        if (t < lowF) lowF = t;
+                        count++;
+                    }
+                }
+
+                // Move endDate to before the oldest record in this batch
+                const oldest = new Date(data[data.length - 1].date);
+                if (oldest <= yearStart) break; // We've gone back far enough
+                endDate = new Date(oldest.getTime() - 1000);
+
+                // Wait 3s between requests to respect rate limit
+                await new Promise(r => setTimeout(r, 3000));
+            }
+
+            if (count > 0) {
+                const highEl = document.getElementById('yearHigh');
+                const lowEl = document.getElementById('yearLow');
+                if (highEl) highEl.textContent = convertTemp(highF);
+                if (lowEl) lowEl.textContent = convertTemp(lowF);
+            }
+        } catch (err) {
+            console.warn('Gat ekki hlaðið ársmælingum:', err.message);
         }
     }
 
@@ -1414,8 +1789,8 @@
                         <div class="day-name">${dayName}</div>
                         <div class="day-icon">${icon}</div>
                         <div class="day-temps">${Math.round(high)}° <span class="low">${Math.round(low)}°</span></div>
-                        <div class="day-wind">💨 ${wind} m/s</div>
-                        ${rain > 0 ? `<div class="day-rain">💧 ${rain.toFixed(1)} mm</div>` : ''}
+                        <div class="day-wind">${wind} m/s</div>
+                        ${rain > 0 ? `<div class="day-rain">${rain.toFixed(1)} mm</div>` : ''}
                     </div>
                 `;
             }
