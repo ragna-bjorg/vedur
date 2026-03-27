@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Veður — Ragna.is</title>
-
+ 
     <!-- Open Graph meta tags for nicer link previews -->
     <meta property="og:title" content="Veður — Ragna.is">
     <meta property="og:description" content="Veðurstöð á Íslandi — Hiti, vindur, úrkoma og fleira í rauntíma.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://vedur.ragna.is">
-
+ 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌤️</text></svg>">
-
+ 
     <!-- PostHog Analytics -->
     <script>
         !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug getPageviewId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
@@ -21,7 +21,7 @@
             person_profiles: 'identified_only',
         });
     </script>
-
+ 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Reenie+Beanie&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
@@ -32,7 +32,7 @@
             crossorigin="anonymous"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
+ 
         :root {
             --bg: #ffffff;
             --card: #faf8f5;
@@ -51,21 +51,21 @@
             --border: rgba(116, 71, 0, 0.12);
             --border-light: rgba(116, 71, 0, 0.06);
         }
-
+ 
         body {
             font-family: Georgia, Utopia, "Palatino Linotype", Palatino, serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
         }
-
+ 
         /* Navigation bar matching ragna.is */
         .top-nav {
             text-align: center;
             padding: 1rem;
             border-bottom: 1px solid var(--border-light);
         }
-
+ 
         .top-nav a {
             font-family: Verdana, Geneva, sans-serif;
             font-size: 0.7rem;
@@ -76,16 +76,16 @@
             margin: 0 1.2rem;
             transition: color 0.2s;
         }
-
+ 
         .top-nav a:hover {
             color: var(--accent);
         }
-
+ 
         .header {
             text-align: center;
             padding: 2rem 1rem 0.5rem;
         }
-
+ 
         .header h1 {
             font-family: 'Reenie Beanie', cursive;
             font-size: 100px;
@@ -94,12 +94,12 @@
             line-height: 1;
             letter-spacing: -1px;
         }
-
+ 
         .header h1 a {
             text-decoration: none;
             color: inherit;
         }
-
+ 
         .header .subtitle {
             font-family: Verdana, Geneva, sans-serif;
             color: var(--text-dim);
@@ -108,7 +108,7 @@
             letter-spacing: 0.25em;
             margin-top: 0.2rem;
         }
-
+ 
         .last-updated {
             text-align: center;
             color: var(--text-dim);
@@ -117,7 +117,7 @@
             font-family: Verdana, Geneva, sans-serif;
             letter-spacing: 0.05em;
         }
-
+ 
         .last-updated .dot {
             display: inline-block;
             width: 7px;
@@ -127,12 +127,12 @@
             margin-right: 6px;
             animation: pulse 2s infinite;
         }
-
+ 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.4; }
         }
-
+ 
         .dashboard {
             max-width: 1000px;
             margin: 0 auto;
@@ -142,7 +142,7 @@
             gap: 1rem;
             overflow: hidden;
         }
-
+ 
         .card {
             background: var(--card);
             border: 1px solid var(--border);
@@ -151,12 +151,12 @@
             transition: background 0.2s, box-shadow 0.2s;
             min-width: 0;
         }
-
+ 
         .card:hover {
             background: var(--card-hover);
             box-shadow: 0 4px 20px rgba(116, 71, 0, 0.06);
         }
-
+ 
         .card-header {
             display: flex;
             align-items: center;
@@ -168,16 +168,16 @@
             text-transform: uppercase;
             letter-spacing: 0.2em;
         }
-
+ 
         .card-header .icon {
             font-size: 1rem;
         }
-
+ 
         .temp-display {
             text-align: center;
             padding: 0.5rem 0;
         }
-
+ 
         .temp-display .temp-main {
             font-family: Georgia, serif;
             font-size: 2.8rem;
@@ -185,19 +185,19 @@
             line-height: 1;
             color: var(--text-dark);
         }
-
+ 
         .temp-display .temp-unit {
             font-size: 1.2rem;
             color: var(--text-dim);
             font-weight: 300;
         }
-
+ 
         .temp-display .feels-like {
             font-size: 0.85rem;
             color: var(--text-dim);
             margin-top: 0.3rem;
         }
-
+ 
         .metric-row {
             display: flex;
             justify-content: space-between;
@@ -205,36 +205,36 @@
             padding: 0.55rem 0;
             border-bottom: 1px solid var(--border-light);
         }
-
+ 
         .metric-row:last-child {
             border-bottom: none;
         }
-
+ 
         .metric-label {
             color: var(--text-dim);
             font-size: 0.85rem;
         }
-
+ 
         .metric-value {
             font-size: 1rem;
             font-weight: 600;
             color: var(--text-dark);
             white-space: nowrap;
         }
-
+ 
         .metric-value.accent { color: var(--accent); }
         .metric-value.warm { color: var(--warm); }
         .metric-value.rain { color: var(--cool); }
         .metric-value.green { color: var(--green); }
         .metric-value.purple { color: var(--purple); }
-
+ 
         .wind-display {
             display: flex;
             align-items: center;
             gap: 1.5rem;
             margin-bottom: 1rem;
         }
-
+ 
         .wind-compass {
             width: 76px;
             height: 76px;
@@ -244,7 +244,7 @@
             flex-shrink: 0;
             background: #fff;
         }
-
+ 
         .wind-compass .arrow {
             position: absolute;
             top: 50%;
@@ -257,7 +257,7 @@
             transform: translate(-50%, -100%) rotate(0deg);
             transition: transform 1s ease;
         }
-
+ 
         .wind-compass .arrow::after {
             content: '';
             position: absolute;
@@ -268,7 +268,7 @@
             border-right: 5px solid transparent;
             border-bottom: 9px solid var(--accent);
         }
-
+ 
         .wind-compass .dir-label {
             position: absolute;
             font-family: Verdana, sans-serif;
@@ -276,24 +276,24 @@
             color: var(--text-dim);
             letter-spacing: 0.05em;
         }
-
+ 
         .wind-compass .dir-n { top: 4px; left: 50%; transform: translateX(-50%); }
         .wind-compass .dir-s { bottom: 4px; left: 50%; transform: translateX(-50%); }
         .wind-compass .dir-e { right: 6px; top: 50%; transform: translateY(-50%); }
         .wind-compass .dir-w { left: 6px; top: 50%; transform: translateY(-50%); }
-
+ 
         .wind-speed-big {
             font-size: 2.2rem;
             font-weight: 400;
             color: var(--text-dark);
             font-family: Georgia, serif;
         }
-
+ 
         .wind-dir-text {
             color: var(--text-dim);
             font-size: 0.85rem;
         }
-
+ 
         /* Vindátt compass card */
         .wind-dir-display {
             display: flex;
@@ -302,14 +302,14 @@
             gap: 2rem;
             padding: 1rem 0;
         }
-
+ 
         .wind-dir-compass {
             position: relative;
             width: 90px;
             height: 90px;
             flex-shrink: 0;
         }
-
+ 
         .compass-ring {
             width: 100%;
             height: 100%;
@@ -318,19 +318,19 @@
             position: relative;
             background: var(--bg);
         }
-
+ 
         .compass-label {
             position: absolute;
             font-size: 0.7rem;
             font-weight: 700;
             color: var(--text-dim);
         }
-
+ 
         .cl-n { top: 4px; left: 50%; transform: translateX(-50%); color: var(--accent); }
         .cl-s { bottom: 4px; left: 50%; transform: translateX(-50%); }
         .cl-e { right: 6px; top: 50%; transform: translateY(-50%); }
         .cl-w { left: 6px; top: 50%; transform: translateY(-50%); }
-
+ 
         .compass-arrow {
             position: absolute;
             top: 50%;
@@ -341,7 +341,7 @@
             margin-top: -30px;
             transform-origin: center center;
         }
-
+ 
         .arrow-head {
             width: 0;
             height: 0;
@@ -353,7 +353,7 @@
             left: 50%;
             transform: translateX(-50%);
         }
-
+ 
         .arrow-tail {
             width: 0;
             height: 0;
@@ -366,30 +366,30 @@
             transform: translateX(-50%);
             opacity: 0.4;
         }
-
+ 
         .wind-dir-info {
             text-align: center;
         }
-
+ 
         .wind-dir-deg {
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--accent);
         }
-
+ 
         .wind-dir-name {
             font-size: 1rem;
             color: var(--text-dim);
             margin-top: 0.2rem;
         }
-
+ 
         /* History section */
         .history-section {
             max-width: 1000px;
             margin: 1.5rem auto 0;
             padding: 0 1rem;
         }
-
+ 
         .history-title {
             text-align: center;
             color: var(--text-dim);
@@ -401,40 +401,40 @@
             padding-top: 1.5rem;
             border-top: 1px solid var(--border);
         }
-
+ 
         .history-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
             gap: 1rem;
         }
-
+ 
         .chart-card {
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 1.5rem;
         }
-
+ 
         .solar-card-content {
             display: flex;
             align-items: center;
             gap: 1.5rem;
             padding: 1rem 0;
         }
-
+ 
         .solar-icon {
             font-size: 3.5rem;
             line-height: 1;
         }
-
+ 
         .solar-times {
             flex: 1;
         }
-
+ 
         .solar-times .metric-row {
             padding: 0.4rem 0;
         }
-
+ 
         .chart-card .card-header {
             display: flex;
             align-items: center;
@@ -446,18 +446,18 @@
             text-transform: uppercase;
             letter-spacing: 0.2em;
         }
-
+ 
         .chart-card canvas {
             width: 100% !important;
             height: 200px !important;
         }
-
+ 
         .loading {
             text-align: center;
             padding: 4rem 2rem;
             color: var(--text-dim);
         }
-
+ 
         .loading .spinner {
             width: 36px;
             height: 36px;
@@ -467,17 +467,17 @@
             margin: 0 auto 1rem;
             animation: spin 1s linear infinite;
         }
-
+ 
         @keyframes spin { to { transform: rotate(360deg); } }
-
+ 
         .error {
             text-align: center;
             padding: 3rem 2rem;
             color: var(--warm);
         }
-
+ 
         .error p { margin-top: 0.5rem; color: var(--text-dim); font-size: 0.9rem; }
-
+ 
         .setup-notice {
             max-width: 560px;
             margin: 2rem auto;
@@ -487,19 +487,19 @@
             padding: 2rem;
             text-align: center;
         }
-
+ 
         .setup-notice h2 {
             color: var(--accent);
             font-weight: 400;
             margin-bottom: 1rem;
         }
-
+ 
         .setup-notice p {
             color: var(--text-dim);
             line-height: 1.7;
             font-size: 0.9rem;
         }
-
+ 
         .setup-notice code {
             background: rgba(116, 71, 0, 0.06);
             padding: 2px 8px;
@@ -507,7 +507,7 @@
             font-size: 0.85rem;
             color: var(--accent);
         }
-
+ 
         .setup-notice ol {
             text-align: left;
             margin: 1rem 0;
@@ -515,18 +515,18 @@
             color: var(--text-dim);
             line-height: 2;
         }
-
+ 
         .setup-notice a {
             color: var(--accent);
         }
-
+ 
         /* Veðurfréttir — forecast accuracy section */
         .vedurfrettir-section {
             max-width: 1000px;
             margin: 2rem auto 0;
             padding: 0 1rem;
         }
-
+ 
         .vedurfrettir-title {
             text-align: center;
             color: var(--text-dim);
@@ -538,14 +538,14 @@
             padding-top: 1.5rem;
             border-top: 1px solid var(--border);
         }
-
+ 
         .vedurfrettir-card {
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 1.5rem 2rem;
         }
-
+ 
         .score-overview {
             display: flex;
             align-items: center;
@@ -553,7 +553,7 @@
             gap: 1.5rem;
             margin-bottom: 1.5rem;
         }
-
+ 
         .score-circle {
             width: 90px;
             height: 90px;
@@ -565,14 +565,14 @@
             border: 3px solid;
             flex-shrink: 0;
         }
-
+ 
         .score-circle .score-number {
             font-family: Georgia, serif;
             font-size: 1.8rem;
             font-weight: 700;
             line-height: 1;
         }
-
+ 
         .score-circle .score-label {
             font-family: Verdana, sans-serif;
             font-size: 0.5rem;
@@ -580,26 +580,26 @@
             letter-spacing: 0.1em;
             margin-top: 2px;
         }
-
+ 
         .score-verdict {
             font-family: Georgia, serif;
             font-size: 1rem;
             color: var(--text-dark);
             line-height: 1.5;
         }
-
+ 
         .score-verdict .verdict-sub {
             font-family: Verdana, sans-serif;
             font-size: 0.7rem;
             color: var(--text-dim);
             margin-top: 0.3rem;
         }
-
+ 
         .metric-rows {
             display: grid;
             gap: 0.6rem;
         }
-
+ 
         .metric-row {
             display: grid;
             grid-template-columns: 120px 1fr 60px;
@@ -608,11 +608,11 @@
             padding: 0.5rem 0;
             border-bottom: 1px solid var(--border-light);
         }
-
+ 
         .metric-row:last-child {
             border-bottom: none;
         }
-
+ 
         .metric-name {
             font-family: Verdana, Geneva, sans-serif;
             font-size: 0.65rem;
@@ -620,27 +620,27 @@
             letter-spacing: 0.1em;
             color: var(--text-dim);
         }
-
+ 
         .metric-bar-wrap {
             height: 8px;
             background: var(--border-light);
             border-radius: 4px;
             overflow: hidden;
         }
-
+ 
         .metric-bar {
             height: 100%;
             border-radius: 4px;
             transition: width 1s ease-out;
         }
-
+ 
         .metric-score {
             font-family: Georgia, serif;
             font-size: 0.9rem;
             text-align: right;
             font-weight: 600;
         }
-
+ 
         .metric-detail {
             grid-column: 1 / -1;
             font-family: Verdana, sans-serif;
@@ -649,19 +649,19 @@
             padding: 0 0 0.3rem;
             margin-top: -0.3rem;
         }
-
+ 
         .score-green { color: #4a8c3f; border-color: #4a8c3f; }
         .score-yellow { color: #b8860b; border-color: #b8860b; }
         .score-red { color: #c0392b; border-color: #c0392b; }
         .bar-green { background: #4a8c3f; }
         .bar-yellow { background: #b8860b; }
         .bar-red { background: #c0392b; }
-
+ 
         @media (max-width: 600px) {
             .score-overview { flex-direction: column; text-align: center; }
             .metric-row { grid-template-columns: 90px 1fr 50px; }
         }
-
+ 
         footer {
             text-align: center;
             padding: 2.5rem 1rem;
@@ -671,19 +671,19 @@
             letter-spacing: 0.15em;
             text-transform: uppercase;
         }
-
+ 
         footer a {
             color: var(--accent);
             text-decoration: none;
         }
-
+ 
         /* Forecast section */
         .forecast-section {
             max-width: 1000px;
             margin: 0 auto;
             padding: 0 1rem 0.5rem;
         }
-
+ 
         .forecast-title {
             text-align: center;
             color: var(--text-dim);
@@ -693,13 +693,13 @@
             letter-spacing: 0.2em;
             margin-bottom: 0.8rem;
         }
-
+ 
         .forecast-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 0.6rem;
         }
-
+ 
         .forecast-day {
             background: var(--card);
             border: 1px solid var(--border);
@@ -708,11 +708,11 @@
             text-align: center;
             transition: background 0.2s;
         }
-
+ 
         .forecast-day:hover {
             background: var(--card-hover);
         }
-
+ 
         .forecast-day .day-name {
             font-family: Verdana, Geneva, sans-serif;
             font-size: 0.6rem;
@@ -721,37 +721,37 @@
             color: var(--text-dim);
             margin-bottom: 0.5rem;
         }
-
+ 
         .forecast-day .day-icon {
             font-size: 1.8rem;
             margin-bottom: 0.4rem;
         }
-
+ 
         .forecast-day .day-temps {
             font-family: Georgia, serif;
             font-size: 1rem;
             color: var(--text-dark);
         }
-
+ 
         .forecast-day .day-temps .low {
             color: var(--text-dim);
             font-size: 0.85rem;
         }
-
+ 
         .forecast-day .day-wind {
             font-family: Verdana, sans-serif;
             font-size: 0.6rem;
             color: var(--text-dim);
             margin-top: 0.3rem;
         }
-
+ 
         .forecast-day .day-rain {
             font-family: Verdana, sans-serif;
             font-size: 0.6rem;
             color: var(--cool);
             margin-top: 0.2rem;
         }
-
+ 
         /* Share bar */
         .share-bar {
             max-width: 1000px;
@@ -761,7 +761,7 @@
             justify-content: center;
             gap: 0.8rem;
         }
-
+ 
         .share-btn {
             font-family: Verdana, Geneva, sans-serif;
             font-size: 0.65rem;
@@ -778,16 +778,16 @@
             gap: 0.4rem;
             transition: background 0.2s, color 0.2s;
         }
-
+ 
         .share-btn:hover {
             background: var(--card-hover);
             color: var(--accent);
         }
-
+ 
         .share-btn .share-icon {
             font-size: 0.9rem;
         }
-
+ 
         .copied-toast {
             position: fixed;
             bottom: 2rem;
@@ -804,15 +804,15 @@
             pointer-events: none;
             z-index: 100;
         }
-
+ 
         .copied-toast.show { opacity: 1; }
-
+ 
         @media (max-width: 900px) {
             .dashboard {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
-
+ 
         @media (max-width: 600px) {
             .dashboard {
                 grid-template-columns: 1fr;
@@ -844,30 +844,30 @@
     </style>
 </head>
 <body>
-
+ 
 <nav class="top-nav">
     <a href="https://www.ragna.is">Heim</a>
 </nav>
-
+ 
 <div class="header">
     <h1><a href="https://www.ragna.is">Ragna.is</a></h1>
     <div style="font-family:Georgia,serif; color:var(--text-dark); font-size:0.95rem; margin-top:0.8rem;">Ártúnsholt — Reykjavík</div>
 </div>
-
+ 
 <div id="forecast" style="display:none;">
     <div class="forecast-section">
         <div class="forecast-title">Veðurspá næstu 5 daga</div>
         <div class="forecast-grid" id="forecastGrid"></div>
     </div>
 </div>
-
+ 
 <div id="app">
     <div class="loading">
         <div class="spinner"></div>
         <p>Hleð veðurgögnum...</p>
     </div>
 </div>
-
+ 
 <div id="history" style="display:none;">
     <div class="history-section">
         <div class="history-title">Síðustu 24 klukkustundir</div>
@@ -899,15 +899,15 @@
         </div>
     </div>
 </div>
-
+ 
 <div class="share-bar">
     <button class="share-btn" id="shareBtn">Deila veðri</button>
     <button class="share-btn" id="snapshotBtn">Vista mynd</button>
     <button class="share-btn" id="copyLink">Afrita hlekk</button>
 </div>
-
+ 
 <div class="copied-toast" id="copiedToast">Hlekkur afritaður!</div>
-
+ 
 <div id="vedurfrettir" style="display:none;">
     <div class="vedurfrettir-section">
         <div class="vedurfrettir-title">Veðurniðurstöður</div>
@@ -927,11 +927,11 @@
         </div>
     </div>
 </div>
-
+ 
 <footer>
     Powered by Ambient Weather &amp; Open-Meteo &middot; <a href="https://www.ragna.is">Ragna.is</a>
 </footer>
-
+ 
 <script>
     // ============================================================
     //  CONFIGURATION
@@ -945,9 +945,9 @@
         RAIN_UNIT: 'mm',
         PRESSURE_UNIT: 'hPa',
     };
-
+ 
     const charts = {};
-
+ 
     // ============================================================
     //  UNIT CONVERSIONS
     // ============================================================
@@ -956,63 +956,63 @@
     function mphToKmh(mph) { return mph * 1.60934; }
     function inToMm(inches) { return inches * 25.4; }
     function inHgToHpa(inHg) { return inHg * 33.8639; }
-
+ 
     function convertTemp(f) {
         if (f == null) return '—';
         if (CONFIG.TEMP_UNIT === 'C') return fToC(f).toFixed(1) + '°C';
         return f.toFixed(1) + '°F';
     }
-
+ 
     function convertTempValue(f) {
         if (f == null) return null;
         return CONFIG.TEMP_UNIT === 'C' ? fToC(f) : f;
     }
-
+ 
     function convertWindValue(mph) {
         if (mph == null) return null;
         if (CONFIG.WIND_UNIT === 'ms') return mphToMs(mph);
         if (CONFIG.WIND_UNIT === 'kmh') return mphToKmh(mph);
         return mph;
     }
-
+ 
     function convertWind(mph) {
         if (mph == null) return '—';
         if (CONFIG.WIND_UNIT === 'ms') return mphToMs(mph).toFixed(1) + ' m/s';
         if (CONFIG.WIND_UNIT === 'kmh') return mphToKmh(mph).toFixed(1) + ' km/h';
         return mph.toFixed(1) + ' mph';
     }
-
+ 
     function convertRainValue(inches) {
         if (inches == null) return null;
         if (CONFIG.RAIN_UNIT === 'mm') return inToMm(inches);
         return inches;
     }
-
+ 
     function convertRain(inches) {
         if (inches == null) return '—';
         if (CONFIG.RAIN_UNIT === 'mm') return inToMm(inches).toFixed(1) + ' mm';
         return inches.toFixed(2) + ' in';
     }
-
+ 
     function convertPressureValue(inHg) {
         if (inHg == null) return null;
         if (CONFIG.PRESSURE_UNIT === 'hPa') return inHgToHpa(inHg);
         return inHg;
     }
-
+ 
     function convertPressure(inHg) {
         if (inHg == null) return '—';
         if (CONFIG.PRESSURE_UNIT === 'hPa') return inHgToHpa(inHg).toFixed(1) + ' hPa';
         return inHg.toFixed(2) + ' inHg';
     }
-
+ 
     function degToCompass(deg) {
         if (deg == null) return '—';
         const dirs = ['N', 'NNA', 'NA', 'ANA', 'A', 'ASA', 'SA', 'SSA',
                        'S', 'SSV', 'SV', 'VSV', 'V', 'VNV', 'NV', 'NNV'];
         return dirs[Math.round(deg / 22.5) % 16];
     }
-
+ 
     function timeAgo(dateStr) {
         const diff = Date.now() - new Date(dateStr).getTime();
         const mins = Math.floor(diff / 60000);
@@ -1021,17 +1021,17 @@
         const hrs = Math.floor(mins / 60);
         return hrs + ' klst síðan';
     }
-
+ 
     function windUnitLabel() {
         if (CONFIG.WIND_UNIT === 'ms') return 'm/s';
         if (CONFIG.WIND_UNIT === 'kmh') return 'km/h';
         return 'mph';
     }
-
+ 
     function rainUnitLabel() {
         return CONFIG.RAIN_UNIT === 'mm' ? 'mm/klst' : 'in/hr';
     }
-
+ 
     // ============================================================
     //  CHART DEFAULTS (warm theme)
     // ============================================================
@@ -1063,29 +1063,29 @@
             }
         }
     };
-
+ 
     function makeGradient(ctx, r, g, b) {
         const gradient = ctx.createLinearGradient(0, 0, 0, 200);
         gradient.addColorStop(0, `rgba(${r},${g},${b},0.2)`);
         gradient.addColorStop(1, `rgba(${r},${g},${b},0.01)`);
         return gradient;
     }
-
+ 
     // ============================================================
     //  RENDER CHARTS
     // ============================================================
     function renderCharts(historyData) {
         document.getElementById('history').style.display = 'block';
-
+ 
         const sorted = historyData.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
-
+ 
         const labels = sorted.map(d => {
             const dt = new Date(d.date);
             return dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         });
-
+ 
         Object.values(charts).forEach(c => c.destroy());
-
+ 
         // -- Temperature --
         const ctxTemp = document.getElementById('chartTemp').getContext('2d');
         charts.temp = new Chart(ctxTemp, {
@@ -1132,7 +1132,7 @@
                 }
             }
         });
-
+ 
         // -- Wind --
         const ctxWind = document.getElementById('chartWind').getContext('2d');
         charts.wind = new Chart(ctxWind, {
@@ -1180,7 +1180,7 @@
                 }
             }
         });
-
+ 
         // -- Rain --
         const ctxRain = document.getElementById('chartRain').getContext('2d');
         charts.rain = new Chart(ctxRain, {
@@ -1208,7 +1208,7 @@
                 }
             }
         });
-
+ 
         // -- Pressure --
         const ctxPressure = document.getElementById('chartPressure').getContext('2d');
         charts.pressure = new Chart(ctxPressure, {
@@ -1238,7 +1238,7 @@
                 }
             }
         });
-
+ 
         // -- Wind Direction (scatter) --
         const ctxWindDir = document.getElementById('chartWindDir').getContext('2d');
         charts.windDir = new Chart(ctxWindDir, {
@@ -1300,11 +1300,11 @@
                 }
             }
         });
-
+ 
         // -- Sun & Moon Height --
         renderSunMoonChart(sorted, labels);
     }
-
+ 
     // ============================================================
     //  SUN & MOON POSITION CALCULATIONS
     // ============================================================
@@ -1312,49 +1312,49 @@
         const rad = Math.PI / 180;
         const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
         const hours = date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
-
+ 
         // Solar declination
         const decl = -23.45 * Math.cos(rad * 360 / 365 * (dayOfYear + 10));
-
+ 
         // Equation of time (approximate)
         const B = rad * 360 / 365 * (dayOfYear - 81);
         const eot = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
-
+ 
         // Solar time
         const solarNoon = 12 - lon / 15 - eot / 60;
         const offset = -date.getTimezoneOffset() / 60;
         const solarTime = hours - offset + lon / 15 + eot / 60 - 12;
         const hourAngle = solarTime * 15;
-
+ 
         // Elevation
         const sinElev = Math.sin(lat * rad) * Math.sin(decl * rad) +
                          Math.cos(lat * rad) * Math.cos(decl * rad) * Math.cos(hourAngle * rad);
         return Math.asin(sinElev) / rad;
     }
-
+ 
     function getMoonElevation(date, lat, lon) {
         const rad = Math.PI / 180;
         // Simplified lunar position calculation
         const J2000 = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
         const d = (date.getTime() - J2000.getTime()) / 86400000;
-
+ 
         // Moon orbital elements (simplified)
         const L = (218.316 + 13.176396 * d) % 360;       // Mean longitude
         const M = (134.963 + 13.064993 * d) % 360;       // Mean anomaly
         const F = (93.272 + 13.229350 * d) % 360;        // Mean distance
-
+ 
         // Ecliptic longitude and latitude
         const lonMoon = L + 6.289 * Math.sin(M * rad);
         const latMoon = 5.128 * Math.sin(F * rad);
-
+ 
         // Ecliptic to equatorial
         const obliq = 23.439 - 0.0000004 * d;
         const cosObliq = Math.cos(obliq * rad);
         const sinObliq = Math.sin(obliq * rad);
-
+ 
         const lonRad = lonMoon * rad;
         const latRad = latMoon * rad;
-
+ 
         const RA = Math.atan2(
             Math.sin(lonRad) * cosObliq - Math.tan(latRad) * sinObliq,
             Math.cos(lonRad)
@@ -1362,33 +1362,33 @@
         const dec = Math.asin(
             Math.sin(latRad) * cosObliq + Math.cos(latRad) * sinObliq * Math.sin(lonRad)
         );
-
+ 
         // Hour angle
         const hours = date.getUTCHours() + date.getUTCMinutes() / 60;
         const GMST = (280.46061837 + 360.98564736629 * d + hours * 15) % 360;
         const LST = (GMST + lon) * rad;
         const HA = LST - RA;
-
+ 
         // Altitude
         const sinAlt = Math.sin(lat * rad) * Math.sin(dec) +
                         Math.cos(lat * rad) * Math.cos(dec) * Math.cos(HA);
         return Math.asin(sinAlt) / rad;
     }
-
+ 
     function renderSunMoonChart(sorted, labels) {
         const lat = stationLat || 64.13;
         const lon = stationLon || -21.90;
-
+ 
         const sunData = sorted.map(d => {
             const dt = new Date(d.date);
             return getSolarElevation(dt, lat, lon);
         });
-
+ 
         const moonData = sorted.map(d => {
             const dt = new Date(d.date);
             return getMoonElevation(dt, lat, lon);
         });
-
+ 
         const ctxSunMoon = document.getElementById('chartSunMoon').getContext('2d');
         charts.sunMoon = new Chart(ctxSunMoon, {
             type: 'line',
@@ -1441,7 +1441,7 @@
             }
         });
     }
-
+ 
     // ============================================================
     //  RENDER LIVE DASHBOARD
     // ============================================================
@@ -1453,9 +1453,9 @@
                 <span class="dot"></span>
                 Uppfært ${d.date ? timeAgo(d.date) : '—'}
             </div>
-
+ 
             <div class="dashboard">
-
+ 
                 <!-- 1. HITI -->
                 <div class="card">
                     <div class="card-header">Hiti</div>
@@ -1476,7 +1476,7 @@
                         <span class="metric-value cool" id="dayLow">—</span>
                     </div>
                 </div>
-
+ 
                 <!-- 2. VINDUR -->
                 <div class="card">
                     <div class="card-header">Vindur</div>
@@ -1502,7 +1502,7 @@
                         <span class="metric-value accent">${convertWind(d.maxdailygust)}</span>
                     </div>
                 </div>
-
+ 
                 <!-- 3. ÚRKOMA -->
                 <div class="card">
                     <div class="card-header">Úrkoma</div>
@@ -1523,7 +1523,7 @@
                         <span class="metric-value">${convertRain(d.monthlyrainin)}</span>
                     </div>
                 </div>
-
+ 
                 <!-- 4. RAKI -->
                 <div class="card">
                     <div class="card-header">Raki</div>
@@ -1536,7 +1536,7 @@
                         <span class="metric-value">${convertTemp(d.dewPoint)}</span>
                     </div>
                 </div>
-
+ 
                 <!-- 5. LOFTÞRÝSTINGUR -->
                 <div class="card">
                     <div class="card-header">Loftþrýstingur</div>
@@ -1545,7 +1545,7 @@
                         <span class="metric-value green">${convertPressure(d.baromrelin)}</span>
                     </div>
                 </div>
-
+ 
                 <!-- 6. UV -->
                 <div class="card">
                     <div class="card-header">UV og sólgeislun</div>
@@ -1558,13 +1558,13 @@
                         <span class="metric-value warm">${d.solarradiation != null ? d.solarradiation.toFixed(1) + ' W/m²' : '—'}</span>
                     </div>
                 </div>
-
-
+ 
+ 
             </div>
         `;
-
+ 
     }
-
+ 
     // ============================================================
     //  SETUP NOTICE
     // ============================================================
@@ -1584,7 +1584,7 @@
             </div>
         `;
     }
-
+ 
     // ============================================================
     //  FETCH WITH RETRY (handles 429 rate limits)
     // ============================================================
@@ -1602,7 +1602,7 @@
         }
         throw new Error('Takmörkun á API — reyndu aftur síðar');
     }
-
+ 
     // ============================================================
     //  FETCH DATA
     // ============================================================
@@ -1611,41 +1611,41 @@
     let stationLat = null;
     let stationLon = null;
     let historyData = null;
-
+ 
     async function fetchWeather() {
         if (CONFIG.API_KEY === 'YOUR_API_KEY_HERE' || CONFIG.APP_KEY === 'YOUR_APPLICATION_KEY_HERE') {
             showSetup();
             return;
         }
-
+ 
         try {
             const url = `https://rt.ambientweather.net/v1/devices?apiKey=${CONFIG.API_KEY}&applicationKey=${CONFIG.APP_KEY}`;
             const res = await fetchWithRetry(url);
-
+ 
             if (!res.ok) throw new Error(`API skilaði ${res.status}`);
-
+ 
             const devices = await res.json();
             if (!devices || devices.length === 0) throw new Error('Engin tæki fundust');
-
+ 
             const device = devices[0];
             renderDashboard(device);
-
+ 
             macAddress = device.macAddress;
-
+ 
             // Store coordinates for forecast comparison
             if (device.info && device.info.coords && device.info.coords.coords) {
                 stationLat = parseFloat(device.info.coords.coords.lat.toFixed(2));
                 stationLon = parseFloat(device.info.coords.coords.lon.toFixed(2));
             }
-
+ 
             // Fetch forecast from Open-Meteo
             if (stationLat && stationLon) {
                 fetchForecast(stationLat, stationLon);
             }
-
+ 
             // Wait 2 seconds before history request to respect rate limit
             setTimeout(fetchHistory, 2000);
-
+ 
         } catch (err) {
             const app = document.getElementById('app');
             const retrySeconds = 30;
@@ -1670,16 +1670,16 @@
             }, 1000);
         }
     }
-
+ 
     async function fetchHistory() {
         if (!macAddress) return;
-
+ 
         try {
             const url = `https://rt.ambientweather.net/v1/devices/${macAddress}?apiKey=${CONFIG.API_KEY}&applicationKey=${CONFIG.APP_KEY}&limit=288`;
             const res = await fetchWithRetry(url);
-
+ 
             if (!res.ok) throw new Error(`History API skilaði ${res.status}`);
-
+ 
             const history = await res.json();
             if (history && history.length > 0) {
                 historyData = history;
@@ -1697,7 +1697,7 @@
             setTimeout(fetchHistory, 15000);
         }
     }
-
+ 
     // ============================================================
     //  TODAY'S HIGH/LOW TEMPERATURE (from already-loaded history)
     // ============================================================
@@ -1720,12 +1720,12 @@
             if (lowEl) lowEl.textContent = convertTemp(lowF);
         }
     }
-
+ 
     // ============================================================
     //  WEATHER FORECAST (Open-Meteo, free, no key needed)
     // ============================================================
     const icelandicDays = ['Sun', 'Mán', 'Þri', 'Mið', 'Fim', 'Fös', 'Lau'];
-
+ 
     function weatherCodeToIcon(code) {
         if (code === 0) return '☀️';
         if (code <= 3) return '⛅';
@@ -1738,17 +1738,17 @@
         if (code <= 99) return '⛈️';
         return '🌤️';
     }
-
+ 
     async function fetchForecast(lat, lon) {
         try {
             const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weather_code,wind_speed_10m_max,precipitation_sum&timezone=auto&forecast_days=5`;
             const res = await fetch(url);
             if (!res.ok) return;
-
+ 
             const data = await res.json();
             const grid = document.getElementById('forecastGrid');
             let html = '';
-
+ 
             for (let i = 0; i < data.daily.time.length; i++) {
                 const date = new Date(data.daily.time[i] + 'T12:00:00');
                 const dayName = i === 0 ? 'Í dag' : icelandicDays[date.getDay()];
@@ -1759,7 +1759,7 @@
                 const icon = weatherCodeToIcon(wcode[i]);
                 const wind = (wwind[i] / 3.6).toFixed(1); // km/h to m/s
                 const rain = data.daily.precipitation_sum[i];
-
+ 
                 html += `
                     <div class="forecast-day">
                         <div class="day-name">${dayName}</div>
@@ -1770,19 +1770,19 @@
                     </div>
                 `;
             }
-
+ 
             grid.innerHTML = html;
             document.getElementById('forecast').style.display = 'block';
         } catch (err) {
             console.warn('Gat ekki hlaðið veðurspá:', err.message);
         }
     }
-
+ 
     // ============================================================
     //  SHARE BUTTONS & SNAPSHOT
     // ============================================================
     const pageUrl = 'https://vedur.ragna.is';
-
+ 
     // Helper: capture the 6 weather tiles as a canvas
     function captureSnapshot() {
         const dashboard = document.querySelector('.dashboard');
@@ -1793,12 +1793,12 @@
             useCORS: true,
         });
     }
-
+ 
     // Helper: convert canvas to Blob
     function canvasToBlob(canvas) {
         return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     }
-
+ 
     // Helper: show toast message
     function showToast(msg) {
         const toast = document.getElementById('copiedToast');
@@ -1806,17 +1806,17 @@
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 2500);
     }
-
+ 
     // "Deila veðri" — Smart share button
     // On mobile: uses Web Share API to share the actual image
     // On desktop: captures + downloads the image, then opens Facebook
     document.getElementById('shareBtn').addEventListener('click', async function() {
         const btn = this;
         btn.textContent = 'Tek mynd...';
-
+ 
         try {
             const canvas = await captureSnapshot();
-
+ 
             // Try Web Share API first (works on mobile — shares the actual image!)
             if (navigator.canShare) {
                 const blob = await canvasToBlob(canvas);
@@ -1833,15 +1833,15 @@
                     return;
                 }
             }
-
+ 
             // Desktop fallback: download the image, then open Facebook
             const link = document.createElement('a');
             link.download = 'vedur-ragna-is.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
-
+ 
             showToast('Mynd vistuð — settu hana inn á Facebook!');
-
+ 
             // Open Facebook create-post page after a short delay
             setTimeout(() => {
                 window.open(
@@ -1849,7 +1849,7 @@
                     '_blank'
                 );
             }, 800);
-
+ 
         } catch (err) {
             if (err.name !== 'AbortError') {
                 showToast('Villa — reyndu aftur');
@@ -1857,7 +1857,7 @@
         }
         btn.textContent = 'Deila veðri';
     });
-
+ 
     // "Vista mynd" — just download the snapshot
     document.getElementById('snapshotBtn').addEventListener('click', async function() {
         const btn = this;
@@ -1874,14 +1874,14 @@
         }
         btn.textContent = 'Vista mynd';
     });
-
+ 
     // "Afrita hlekk" — copy URL
     document.getElementById('copyLink').addEventListener('click', function() {
         navigator.clipboard.writeText(pageUrl).then(() => {
             showToast('Hlekkur afritaður!');
         });
     });
-
+ 
     // ============================================================
     //  VEÐURFRÉTTIR — Forecast Accuracy Comparison
     // ============================================================
@@ -1893,15 +1893,15 @@
                 + `&past_days=1&forecast_days=0&timezone=auto`;
             const res = await fetch(url);
             if (!res.ok) return;
-
+ 
             const forecast = await res.json();
             if (!forecast.hourly || !forecast.hourly.time) return;
-
+ 
             // Build hourly buckets from Ambient Weather data
             // Ambient data has timestamps; we group by hour
             const sorted = ambientHistory.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
             const actualByHour = {};
-
+ 
             sorted.forEach(d => {
                 const dt = new Date(d.date);
                 const hourKey = dt.toISOString().slice(0, 13); // "2026-03-25T14"
@@ -1914,11 +1914,11 @@
                 if (d.hourlyrainin != null) actualByHour[hourKey].rain.push(d.hourlyrainin * 25.4); // in to mm
                 if (d.baromrelin != null) actualByHour[hourKey].pressure.push(d.baromrelin * 33.8639); // inHg to hPa
             });
-
+ 
             // Average each hour bucket
             function avg(arr) { return arr.length ? arr.reduce((a,b) => a+b, 0) / arr.length : null; }
             function sum(arr) { return arr.length ? arr.reduce((a,b) => a+b, 0) : null; }
-
+ 
             // Compare forecast vs actual for each hour we have data for
             const metrics = {
                 temp:     { name: 'Hiti',           unit: '°C',  forecasts: [], actuals: [], tolerance: 3 },
@@ -1927,31 +1927,31 @@
                 rain:     { name: 'Úrkoma',         unit: 'mm',  forecasts: [], actuals: [], tolerance: 0.5 },
                 pressure: { name: 'Loftþrýstingur', unit: 'hPa', forecasts: [], actuals: [], tolerance: 5 },
             };
-
+ 
             forecast.hourly.time.forEach((timeStr, i) => {
                 const hourKey = timeStr.slice(0, 13);
                 const actual = actualByHour[hourKey];
                 if (!actual) return;
-
+ 
                 const fTemp = forecast.hourly.temperature_2m[i];
                 const fHum = forecast.hourly.relative_humidity_2m ? forecast.hourly.relative_humidity_2m[i] : (forecast.hourly.relativehumidity_2m ? forecast.hourly.relativehumidity_2m[i] : null);
                 const fWind = forecast.hourly.wind_speed_10m ? forecast.hourly.wind_speed_10m[i] : (forecast.hourly.windspeed_10m ? forecast.hourly.windspeed_10m[i] : null);
                 const fRain = forecast.hourly.precipitation[i];
                 const fPres = forecast.hourly.surface_pressure[i];
-
+ 
                 const aTemp = avg(actual.temps);
                 const aHum = avg(actual.humidity);
                 const aWind = avg(actual.wind);
                 const aRain = sum(actual.rain);
                 const aPres = avg(actual.pressure);
-
+ 
                 if (fTemp != null && aTemp != null) { metrics.temp.forecasts.push(fTemp); metrics.temp.actuals.push(aTemp); }
                 if (fHum != null && aHum != null) { metrics.humidity.forecasts.push(fHum); metrics.humidity.actuals.push(aHum); }
                 if (fWind != null && aWind != null) { metrics.wind.forecasts.push(fWind); metrics.wind.actuals.push(aWind); }
                 if (fRain != null && aRain != null) { metrics.rain.forecasts.push(fRain); metrics.rain.actuals.push(aRain); }
                 if (fPres != null && aPres != null) { metrics.pressure.forecasts.push(fPres); metrics.pressure.actuals.push(aPres); }
             });
-
+ 
             // Calculate accuracy for each metric
             // Score = 100 - (MAE / tolerance * 100), clamped to 0-100
             function calcScore(m) {
@@ -1966,11 +1966,11 @@
                 m.score = Math.round(score);
                 return m.score;
             }
-
+ 
             const scores = {};
             let totalScore = 0;
             let scoreCount = 0;
-
+ 
             Object.keys(metrics).forEach(key => {
                 const s = calcScore(metrics[key]);
                 if (s != null) {
@@ -1979,19 +1979,19 @@
                     scoreCount++;
                 }
             });
-
+ 
             if (scoreCount === 0) return;
-
+ 
             const overall = Math.round(totalScore / scoreCount);
-
+ 
             // Render the section
             renderVedurfrettir(overall, metrics, scores);
-
+ 
         } catch (err) {
             console.warn('Gat ekki hlaðið veðurfréttum:', err.message);
         }
     }
-
+ 
     function renderVedurfrettir(overall, metrics, scores) {
         // Color class based on score
         function colorClass(score) {
@@ -1999,13 +1999,13 @@
             if (score >= 50) return 'yellow';
             return 'red';
         }
-
+ 
         function barClass(score) {
             if (score >= 75) return 'bar-green';
             if (score >= 50) return 'bar-yellow';
             return 'bar-red';
         }
-
+ 
         // Verdict text
         function getVerdict(score) {
             if (score >= 90) return 'Framúrskarandi spá! Veðurguðirnir voru á ykkur ráðin.';
@@ -2016,29 +2016,29 @@
             if (score >= 35) return 'Frekar slök spá. Betra að horfa út um gluggann.';
             return 'Alveg framhjá! Veðurspáin var á villigötum.';
         }
-
+ 
         // Overall score circle
         const cls = colorClass(overall);
         const circle = document.getElementById('scoreCircle');
         circle.className = 'score-circle score-' + cls;
         document.getElementById('scoreNumber').textContent = overall + '%';
-
+ 
         document.getElementById('verdictText').textContent = getVerdict(overall);
         document.getElementById('verdictSub').textContent = 'Byggt á samanburði síðustu 24 klst. mælinga við Open-Meteo spá';
-
+ 
         // Metric rows
         const rowsEl = document.getElementById('metricRows');
         let rowsHtml = '';
-
+ 
         Object.keys(metrics).forEach(key => {
             const m = metrics[key];
             if (m.score == null) return;
-
+ 
             const bc = barClass(m.score);
             const sc = colorClass(m.score);
             const avgForecast = m.forecasts.reduce((a,b) => a+b, 0) / m.forecasts.length;
             const avgActual = m.actuals.reduce((a,b) => a+b, 0) / m.actuals.length;
-
+ 
             let detailText = '';
             if (key === 'temp') {
                 detailText = `Spá: ${avgForecast.toFixed(1)}°C — Mælt: ${avgActual.toFixed(1)}°C (munur: ${m.mae.toFixed(1)}°C)`;
@@ -2053,7 +2053,7 @@
             } else if (key === 'pressure') {
                 detailText = `Spá: ${avgForecast.toFixed(0)} hPa — Mælt: ${avgActual.toFixed(0)} hPa (munur: ${m.mae.toFixed(1)} hPa)`;
             }
-
+ 
             rowsHtml += `
                 <div class="metric-row">
                     <div class="metric-name">${m.name}</div>
@@ -2067,17 +2067,17 @@
                 </div>
             `;
         });
-
+ 
         rowsEl.innerHTML = rowsHtml;
         document.getElementById('vedurfrettir').style.display = 'block';
     }
-
+ 
     // ============================================================
     //  INIT
     // ============================================================
     fetchWeather();
     setInterval(fetchWeather, CONFIG.REFRESH_MINUTES * 60 * 1000);
 </script>
-
+ 
 </body>
 </html>
