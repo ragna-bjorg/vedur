@@ -24,8 +24,12 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Reenie+Beanie&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
+            integrity="sha512-ZHjibx5hy5ykZQFGRMHD/B0hHQlFbEP4SNHB4gc3UMuNM6tpGxGa17ADN5a9EOSbfHbvqijHkSHas3JBiuXg=="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+            integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCqLGB8qyujC6whNekdZ37eORpFiSv2Sl5eDJzsD4+rZVgQ8j0U8pjPMVaCjg=="
+            crossorigin="anonymous"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -933,8 +937,8 @@
     //  CONFIGURATION
     // ============================================================
     const CONFIG = {
-        API_KEY: 'ea404d10368e488983504fb762a482ac2411fea19164458786d067dea240064f',
-        APP_KEY: '760a90012aa04bd3842c120fc56e03272dc763c4462f4cba9b54ec66bb5deec1',
+        API_KEY: '36de8cc26f8c42eeb9a3f36917866318a4f5d3e393ae4130a38d4a6bf0cf1adc',
+        APP_KEY: '28d59914780d4f958a78fe0d9ed822ad6b6e32f77c45437690d81615d3f8daac',
         REFRESH_MINUTES: 5,
         TEMP_UNIT: 'C',
         WIND_UNIT: 'ms',
@@ -1630,8 +1634,8 @@
 
             // Store coordinates for forecast comparison
             if (device.info && device.info.coords && device.info.coords.coords) {
-                stationLat = device.info.coords.coords.lat;
-                stationLon = device.info.coords.coords.lon;
+                stationLat = parseFloat(device.info.coords.coords.lat.toFixed(2));
+                stationLon = parseFloat(device.info.coords.coords.lon.toFixed(2));
             }
 
             // Fetch forecast from Open-Meteo
