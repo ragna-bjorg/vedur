@@ -138,16 +138,6 @@
             line-height: 1.5;
         }
 
-        .verdict-today {
-            margin-top: 1.2rem;
-            padding-top: 1.1rem;
-            border-top: 1px solid var(--border);
-            font-size: 0.88rem;
-            color: var(--text-dim);
-        }
-
-        .verdict-today b { color: var(--text); font-weight: 700; }
-
         /* ------------------------------------------------------ now columns */
         .now-grid {
             display: grid;
@@ -218,33 +208,19 @@
             margin-bottom: 1.1rem;
         }
 
-        .score-row { margin-bottom: 1.15rem; }
-        .score-row:last-of-type { margin-bottom: 0.4rem; }
+        .score-chart-box { height: 230px; position: relative; margin-bottom: 0.3rem; }
 
-        .score-head {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.82rem;
-            margin-bottom: 0.45rem;
+        .score-detail {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.8rem;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            text-align: center;
+            margin-bottom: 0.4rem;
         }
 
-        .score-head .factor { font-weight: 700; }
-        .score-head .weight { color: var(--text-dim); font-size: 0.72rem; }
-
-        .bar-pair { display: flex; flex-direction: column; gap: 0.3rem; }
-
-        .bar-line { display: flex; align-items: center; gap: 0.6rem; font-size: 0.72rem; }
-        .bar-line .who { width: 3.6rem; color: var(--text-dim); flex-shrink: 0; }
-        .bar-track {
-            flex: 1;
-            height: 7px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            overflow: hidden;
-        }
-        .bar-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease-out; }
-        .bar-line .val { width: 2.4rem; text-align: right; color: var(--text-dim); flex-shrink: 0; }
+        .score-detail b { display: block; color: var(--text); font-weight: 700; font-size: 0.78rem; }
 
         .score-total {
             display: flex;
@@ -360,7 +336,9 @@
             .now-temp { font-size: 2.2rem; }
             .site-logo { height: 56px; }
             .wrap { padding: 1.2rem 0.8rem 2.5rem; }
-            .bar-line .who { width: 3rem; }
+            .score-chart-box { height: 200px; }
+            .score-detail { font-size: 0.66rem; gap: 0.5rem; }
+            .score-detail b { font-size: 0.72rem; }
         }
     </style>
 </head>
@@ -394,7 +372,6 @@
         <div class="verdict-label">Niðurstaðan núna</div>
         <div class="verdict-now skeleton" id="verdictNow">Sæki gögn&hellip;</div>
         <div class="verdict-reason" id="verdictReason"></div>
-        <div class="verdict-today" id="verdictToday" style="display:none"></div>
     </div>
 
     <!-- Current conditions side by side -->
@@ -413,8 +390,15 @@
 
     <!-- Score breakdown -->
     <div class="scores" id="scores" style="display:none">
-        <div class="section-label">Hvernig niðurstaðan fæst</div>
-        <div id="scoreRows"></div>
+        <div class="chart-head">
+            <div class="section-label" style="margin:0">Hvernig niðurstaðan fæst</div>
+            <div class="legend">
+                <span><i style="background:#4A3524"></i>Árbær</span>
+                <span><i style="background:#D8B077"></i>Vík</span>
+            </div>
+        </div>
+        <div class="score-chart-box"><canvas id="scoreChart"></canvas></div>
+        <div class="score-detail" id="scoreDetail"></div>
         <div class="score-total">
             <span>Samtals</span>
             <span><b id="totalA">—</b> <span style="color:var(--text-dim)">Árbær</span>
@@ -603,29 +587,87 @@ function renderNow(elId, d) {
     `;
 }
 
-function bar(who, value, color) {
-    return `
-        <div class="bar-line">
-            <span class="who">${who}</span>
-            <span class="bar-track"><span class="bar-fill" style="width:${clamp(value, 0, 100)}%;background:${color}"></span></span>
-            <span class="val">${Math.round(value)}</span>
-        </div>`;
+/* Grouped columns: one group per factor, one column per station.
+   Far easier to read a difference off than paired horizontal bars. */
+function renderScoreChart(parts) {
+    const labels = parts.map(p => p.label);
+    const dataA  = parts.map(p => Math.round(p.a));
+    const dataB  = parts.map(p => Math.round(p.b));
+
+    if (charts.scoreChart) {
+        const c = charts.scoreChart;
+        c.data.labels = labels;
+        c.data.datasets[0].data = dataA;
+        c.data.datasets[1].data = dataB;
+        c._measured = parts.map(p => p.detail);
+        c.update();
+        return;
+    }
+
+    const chart = new Chart(document.getElementById('scoreChart'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                { label: 'Árbær', data: dataA, backgroundColor: STATIONS.a.color, borderRadius: 3 },
+                { label: 'Vík',   data: dataB, backgroundColor: STATIONS.b.color, borderRadius: 3 },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            categoryPercentage: 0.62,
+            barPercentage: 0.82,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#4A3524',
+                    titleColor: '#F7F1E6',
+                    bodyColor: '#F7F1E6',
+                    borderWidth: 0,
+                    padding: 10,
+                    cornerRadius: 4,
+                    titleFont: { family: 'Gantari', size: 11 },
+                    bodyFont: { family: 'Gantari', size: 12 },
+                    callbacks: {
+                        label: c => `${c.dataset.label}: ${c.parsed.y} af 100`,
+                        afterBody: items => {
+                            const m = charts.scoreChart && charts.scoreChart._measured;
+                            return m ? m[items[0].dataIndex] : '';
+                        },
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    border: { color: '#EDE4D3' },
+                    ticks: { color: '#4A3524', font: { family: 'Gantari', size: 12, weight: '700' } },
+                },
+                y: {
+                    min: 0,
+                    max: 100,
+                    grid: { color: '#EDE4D3' },
+                    border: { display: false },
+                    ticks: {
+                        color: '#8A6844',
+                        font: { family: 'Gantari', size: 10 },
+                        stepSize: 25,
+                    },
+                },
+            },
+        },
+    });
+    chart._measured = parts.map(p => p.detail);
+    charts.scoreChart = chart;
 }
 
 function renderScores(parts, totals, sun) {
-    const rows = parts.map(p => `
-        <div class="score-row">
-            <div class="score-head">
-                <span class="factor">${p.label}</span>
-                <span class="weight">${p.weightLabel} · ${p.detail}</span>
-            </div>
-            <div class="bar-pair">
-                ${bar('Árbær', p.a, STATIONS.a.color)}
-                ${bar('Vík',   p.b, STATIONS.b.color)}
-            </div>
-        </div>`).join('');
+    renderScoreChart(parts);
 
-    document.getElementById('scoreRows').innerHTML = rows;
+    document.getElementById('scoreDetail').innerHTML = parts.map(p =>
+        `<div>${p.label} · ${p.weightLabel}<b>${p.detail}</b></div>`).join('');
+
     document.getElementById('totalA').textContent = Math.round(totals.a);
     document.getElementById('totalB').textContent = Math.round(totals.b);
 
@@ -676,7 +718,7 @@ function windowLabel(win) {
     return `Síðustu ${Math.round(win.hours * 60)} mínútur`;
 }
 
-function renderVerdict(dA, dB, totals, periodTotals, win) {
+function renderVerdict(dA, dB, totals) {
     const el = document.getElementById('verdictNow');
     const diff = totals.a - totals.b;
 
@@ -688,33 +730,6 @@ function renderVerdict(dA, dB, totals, periodTotals, win) {
     el.classList.remove('skeleton');
 
     document.getElementById('verdictReason').textContent = phrase(dA, dB);
-
-    const td = document.getElementById('verdictToday');
-    const label = windowLabel(win);
-
-    if (!label || !periodTotals) {
-        td.innerHTML = 'Ekki nóg af sameiginlegum mælingum enn þá til að dæma lengra tímabil.';
-        td.style.display = '';
-        return;
-    }
-
-    const tdiff = periodTotals.a - periodTotals.b;
-    let tText;
-    if (Math.abs(tdiff) < 3) tText = 'nokkurn veginn jafnt';
-    else tText = tdiff > 0 ? 'betra í <b>Árbæ</b>' : 'betra í <b>Vík</b>';
-
-    let html = `${label}: ${tText} ` +
-               `(Árbær ${Math.round(periodTotals.a)}, Vík ${Math.round(periodTotals.b)}).`;
-
-    /* Be explicit when the shared record is still thin — otherwise the
-       number looks more authoritative than it deserves. */
-    if (win.hours < 23) {
-        html += `<br><span style="opacity:0.8">Borið saman yfir það tímabil sem báðar ` +
-                `stöðvar hafa mælingar. Lengist eftir því sem nýrri stöðin safnar sögu.</span>`;
-    }
-
-    td.innerHTML = html;
-    td.style.display = '';
 }
 
 /* ------------------------------------------------------------------ charts */
@@ -992,21 +1007,7 @@ async function run() {
     const sA = windowStats(dA.history, win);
     const sB = windowStats(dB.history, win);
 
-    /* Scale the rain yardstick to the window: 12 mm is a wet day, but over
-       two hours far less than that already counts as thoroughly wet. */
-    const rainScale = win ? Math.max(0.25, Math.min(1, win.hours / 24)) : 1;
-    const scoreRainWin = mm => scoreRainDaily(mm / rainScale);
-
-    const periodTotals = (win && sA.samples && sB.samples) ? {
-        a: (scoreTemp(fToC(sA.tMean)) +
-            scoreWind(mphToMs(sA.wMean ?? 0)) +
-            scoreRainWin(inToMm(sA.rainWin))) / 3,
-        b: (scoreTemp(fToC(sB.tMean)) +
-            scoreWind(mphToMs(sB.wMean ?? 0)) +
-            scoreRainWin(inToMm(sB.rainWin))) / 3,
-    } : null;
-
-    renderVerdict(dA, dB, totals, periodTotals, win);
+    renderVerdict(dA, dB, totals);
     renderScores(parts, totals, sun);
     renderDaily(sA, sB, win);
 
