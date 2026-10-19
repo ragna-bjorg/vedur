@@ -666,7 +666,17 @@ function phrase(dA, dB) {
     return bits.join(', ') + '.';
 }
 
-function renderVerdict(dA, dB, totals, todayTotals) {
+function windowLabel(win) {
+    if (!win) return null;
+    if (win.hours >= 23) return 'Síðasta sólarhringinn í heild';
+    if (win.hours >= 1.5) {
+        const h = win.hours.toFixed(1).replace(/\.0$/, '');
+        return `Síðustu ${h} klst.`;
+    }
+    return `Síðustu ${Math.round(win.hours * 60)} mínútur`;
+}
+
+function renderVerdict(dA, dB, totals, periodTotals, win) {
     const el = document.getElementById('verdictNow');
     const diff = totals.a - totals.b;
 
@@ -680,12 +690,30 @@ function renderVerdict(dA, dB, totals, todayTotals) {
     document.getElementById('verdictReason').textContent = phrase(dA, dB);
 
     const td = document.getElementById('verdictToday');
-    const tdiff = todayTotals.a - todayTotals.b;
+    const label = windowLabel(win);
+
+    if (!label || !periodTotals) {
+        td.innerHTML = 'Ekki nóg af sameiginlegum mælingum enn þá til að dæma lengra tímabil.';
+        td.style.display = '';
+        return;
+    }
+
+    const tdiff = periodTotals.a - periodTotals.b;
     let tText;
     if (Math.abs(tdiff) < 3) tText = 'nokkurn veginn jafnt';
     else tText = tdiff > 0 ? 'betra í <b>Árbæ</b>' : 'betra í <b>Vík</b>';
-    td.innerHTML = `Síðasta sólarhringinn í heild: ${tText} ` +
-                   `(${Math.round(todayTotals.a)} á móti ${Math.round(todayTotals.b)}).`;
+
+    let html = `${label}: ${tText} ` +
+               `(Árbær ${Math.round(periodTotals.a)}, Vík ${Math.round(periodTotals.b)}).`;
+
+    /* Be explicit when the shared record is still thin — otherwise the
+       number looks more authoritative than it deserves. */
+    if (win.hours < 23) {
+        html += `<br><span style="opacity:0.8">Borið saman yfir það tímabil sem báðar ` +
+                `stöðvar hafa mælingar. Lengist eftir því sem nýrri stöðin safnar sögu.</span>`;
+    }
+
+    td.innerHTML = html;
     td.style.display = '';
 }
 
@@ -798,13 +826,47 @@ function alignSeries(histA, histB, pick) {
 }
 
 /* --------------------------------------------------------------- the day */
-function dailyStats(hist, now) {
-    const temps = hist.map(r => r.tempf).filter(v => v != null);
-    const winds = hist.map(r => r.windspdmph_avg10m ?? r.windspeedmph).filter(v => v != null);
-    const gusts = hist.map(r => r.windgustmph).filter(v => v != null);
-    const sunny = hist.filter(r => (r.solarradiation ?? 0) >= SUNNY_THRESHOLD).length;
+
+/* Ambient Weather pads its history with empty placeholder rows for any
+   period before a station was switched on, so a brand-new station returns
+   288 rows of which only a handful carry readings. */
+const hasReading = r => r && r.tempf !== null && r.tempf !== undefined;
+
+/* Only compare over the stretch both stations actually covered — otherwise
+   a station installed an hour ago is judged on an hour while the other is
+   judged on a full day, which tells you nothing. */
+function sharedWindow(histA, histB) {
+    const realA = histA.filter(hasReading);
+    const realB = histB.filter(hasReading);
+    if (!realA.length || !realB.length) return null;
+
+    const from = Math.max(realA[0].dateutc, realB[0].dateutc);
+    const to   = Math.min(realA[realA.length - 1].dateutc, realB[realB.length - 1].dateutc);
+    if (to <= from) return null;
+
+    return { from, to, hours: (to - from) / 3600000 };
+}
+
+function windowStats(hist, win) {
+    const rows = hist.filter(r => hasReading(r) &&
+        (!win || (r.dateutc >= win.from && r.dateutc <= win.to)));
+
+    const temps = rows.map(r => r.tempf).filter(v => v != null);
+    const winds = rows.map(r => r.windspdmph_avg10m ?? r.windspeedmph).filter(v => v != null);
+    const gusts = rows.map(r => r.windgustmph).filter(v => v != null);
+    const sunny = rows.filter(r => (r.solarradiation ?? 0) >= SUNNY_THRESHOLD).length;
 
     const mean = arr => arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : null;
+
+    /* dailyrainin is a running total that resets at midnight, so the rain
+       that fell inside the window is last minus first — unless the window
+       spans midnight, in which case the last value is the better answer. */
+    const rains = rows.map(r => r.dailyrainin).filter(v => v != null);
+    let rainWin = 0;
+    if (rains.length) {
+        const delta = rains[rains.length - 1] - rains[0];
+        rainWin = delta >= 0 ? delta : rains[rains.length - 1];
+    }
 
     return {
         tMax: temps.length ? Math.max(...temps) : null,
@@ -812,19 +874,24 @@ function dailyStats(hist, now) {
         tMean: mean(temps),
         wMean: mean(winds),
         gustMax: gusts.length ? Math.max(...gusts) : null,
-        rainDay: now.dailyrainin ?? 0,
+        rainWin,
         sunHours: sunny * 5 / 60,   // readings are 5 minutes apart
+        samples: rows.length,
     };
 }
 
-function renderDaily(sA, sB) {
+function renderDaily(sA, sB, win) {
+    const label = windowLabel(win);
+    document.querySelector('#daily .section-label').textContent =
+        label ? `Tímabilið í tölum — ${label.toLowerCase()}` : 'Tímabilið í tölum';
+
     const rows = [
         ['Hæsti hiti',      v => fToC(v).toFixed(1) + '°C', 'tMax', 'high'],
         ['Lægsti hiti',     v => fToC(v).toFixed(1) + '°C', 'tMin', 'high'],
         ['Meðalhiti',       v => fToC(v).toFixed(1) + '°C', 'tMean', 'high'],
         ['Meðalvindur',     v => mphToMs(v).toFixed(1) + ' m/s', 'wMean', 'low'],
         ['Mesta hviða',     v => mphToMs(v).toFixed(1) + ' m/s', 'gustMax', 'low'],
-        ['Úrkoma í dag',    v => inToMm(v).toFixed(1) + ' mm', 'rainDay', 'low'],
+        ['Úrkoma',          v => inToMm(v).toFixed(1) + ' mm', 'rainWin', 'low'],
         ['Sólskinsstundir', v => v.toFixed(1) + ' klst', 'sunHours', 'high'],
     ];
 
@@ -905,22 +972,28 @@ async function run() {
         b: parts.reduce((s, p) => s + p.b, 0) / 3 + sun.b,
     };
 
-    /* --- score the whole day --- */
-    const sA = dailyStats(dA.history, dA.now);
-    const sB = dailyStats(dB.history, dB.now);
+    /* --- score the stretch both stations actually covered --- */
+    const win = sharedWindow(dA.history, dB.history);
+    const sA = windowStats(dA.history, win);
+    const sB = windowStats(dB.history, win);
 
-    const todayTotals = {
-        a: (scoreTemp(fToC(sA.tMean ?? dA.now.tempf)) +
+    /* Scale the rain yardstick to the window: 12 mm is a wet day, but over
+       two hours far less than that already counts as thoroughly wet. */
+    const rainScale = win ? Math.max(0.25, Math.min(1, win.hours / 24)) : 1;
+    const scoreRainWin = mm => scoreRainDaily(mm / rainScale);
+
+    const periodTotals = (win && sA.samples && sB.samples) ? {
+        a: (scoreTemp(fToC(sA.tMean)) +
             scoreWind(mphToMs(sA.wMean ?? 0)) +
-            scoreRainDaily(inToMm(sA.rainDay))) / 3,
-        b: (scoreTemp(fToC(sB.tMean ?? dB.now.tempf)) +
+            scoreRainWin(inToMm(sA.rainWin))) / 3,
+        b: (scoreTemp(fToC(sB.tMean)) +
             scoreWind(mphToMs(sB.wMean ?? 0)) +
-            scoreRainDaily(inToMm(sB.rainDay))) / 3,
-    };
+            scoreRainWin(inToMm(sB.rainWin))) / 3,
+    } : null;
 
-    renderVerdict(dA, dB, totals, todayTotals);
+    renderVerdict(dA, dB, totals, periodTotals, win);
     renderScores(parts, totals, sun);
-    renderDaily(sA, sB);
+    renderDaily(sA, sB, win);
 
     /* --- charts --- */
     const temp = alignSeries(dA.history, dB.history, r => r.tempf == null ? null : fToC(r.tempf));
