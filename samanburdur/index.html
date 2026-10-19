@@ -449,7 +449,7 @@
 
     <div class="chart-card">
         <div class="chart-head">
-            <div class="section-label" style="margin:0">Úrkoma — uppsöfnuð í dag</div>
+            <div class="section-label" style="margin:0">Úrkoma — uppsöfnuð á tímabilinu</div>
             <div class="legend">
                 <span><i style="background:#4A3524"></i>Árbær</span>
                 <span><i style="background:#D8B077"></i>Vík</span>
@@ -798,6 +798,21 @@ function makeChart(canvasId, labels, seriesA, seriesB, unit) {
     return charts[canvasId];
 }
 
+/* Walk the history and build rain accumulated since the first reading.
+   dailyrainin resets to 0 at local midnight, so a value lower than the one
+   before it means the counter rolled over — that reading is fresh rain, not
+   a negative amount. */
+function markCumulativeRain(hist) {
+    let total = 0, prev = null;
+    hist.forEach(r => {
+        const v = r.dailyrainin;
+        if (v === null || v === undefined) { r._rainCum = null; return; }
+        if (prev !== null) total += (v >= prev) ? (v - prev) : v;
+        prev = v;
+        r._rainCum = total;
+    });
+}
+
 /* Align the two histories onto a shared 10-minute timeline so the lines
    are genuinely comparable rather than two differently-spaced series. */
 function alignSeries(histA, histB, pick) {
@@ -1001,10 +1016,14 @@ async function run() {
         r => (r.windspdmph_avg10m ?? r.windspeedmph) == null
             ? null : mphToMs(r.windspdmph_avg10m ?? r.windspeedmph));
 
-    /* Rain accumulates through the day, which reads far better than a
-       jumpy hourly rate on a 24-hour chart. */
+    /* Rain accumulates through the day, which reads far better than a jumpy
+       hourly rate — but dailyrainin resets to zero at midnight, so a raw plot
+       drops off a cliff mid-chart. Re-accumulate from the start of the window
+       instead, treating a drop as a reset rather than as negative rain. */
+    markCumulativeRain(dA.history);
+    markCumulativeRain(dB.history);
     const rain = alignSeries(dA.history, dB.history,
-        r => r.dailyrainin == null ? null : inToMm(r.dailyrainin));
+        r => r._rainCum == null ? null : inToMm(r._rainCum));
 
     makeChart('chartTemp', temp.labels, temp.a, temp.b, '°C');
     makeChart('chartWind', wind.labels, wind.a, wind.b, 'm/s');
