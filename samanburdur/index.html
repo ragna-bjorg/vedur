@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hvar er betra veður? — Ragna.is</title>
+
+    <meta property="og:title" content="Hvar er betra veður? — Ragna.is">
+    <meta property="og:description" content="Árbær eða Vík í Mýrdal — samanburður á hita, vindi og úrkomu í rauntíma.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vedur.ragna.is/samanburdur">
+
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gantari:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
+            integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw=="
+            crossorigin="anonymous"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            /* Palette B — white ground, Flour panels, Crumb borders. */
+            --bg: #FFFFFF;
+            --card: #F7F1E6;
+            --accent: #4A3524;          /* Crust  — Árbær */
+            --warm: #D8B077;            /* Wheat Gold — Vík */
+            --text: #4A3524;
+            --text-dim: #8A6844;        /* Toasted */
+            --link: #8A6844;
+            --cool: #5a8fa8;
+            --border: #EDE4D3;          /* Crumb */
+            --border-light: rgba(74, 53, 36, 0.08);
+        }
+
+        body {
+            font-family: 'Gantari', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .top-nav {
+            text-align: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .top-nav a {
+            font-family: 'Gantari', sans-serif;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-dim);
+            text-decoration: none;
+            margin: 0 0.8rem;
+            transition: color 0.2s;
+        }
+
+        .top-nav a:hover { color: var(--accent); }
+
+        /* Station switcher */
+        .station-switch { display: flex; justify-content: center; padding: 1.1rem 1rem 0; }
+
+        .station-switch-inner {
+            display: inline-flex;
+            gap: 0.25rem;
+            padding: 0.25rem;
+            background: var(--card);
+            border: 1px solid var(--border-light);
+            border-radius: 999px;
+        }
+
+        .station-btn {
+            font-family: 'Gantari', sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: var(--text-dim);
+            padding: 0.5rem 1.5rem;
+            border-radius: 999px;
+            transition: background 0.2s, color 0.2s;
+            white-space: nowrap;
+        }
+
+        .station-btn:hover { color: var(--accent); }
+
+        .station-btn[aria-current="page"] {
+            background: var(--accent);
+            color: #F7F1E6;
+            font-weight: 700;
+        }
+
+        .header { text-align: center; padding: 1.4rem 1rem 0; }
+
+        .site-logo { height: 80px; width: auto; display: block; margin: 0 auto; }
+
+        .page-title {
+            font-size: 0.95rem;
+            color: var(--text-dark, var(--text));
+            margin-top: 0.8rem;
+        }
+
+        .wrap { max-width: 1000px; margin: 0 auto; padding: 1.6rem 1rem 3rem; }
+
+        /* ---------------------------------------------------------- verdict */
+        .verdict {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.8rem 1.4rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .verdict-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 0.9rem;
+        }
+
+        .verdict-now {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: -0.01em;
+        }
+
+        .verdict-reason {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-top: 0.6rem;
+            line-height: 1.5;
+        }
+
+        .verdict-today {
+            margin-top: 1.2rem;
+            padding-top: 1.1rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.88rem;
+            color: var(--text-dim);
+        }
+
+        .verdict-today b { color: var(--text); font-weight: 700; }
+
+        /* ------------------------------------------------------ now columns */
+        .now-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .now-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.2rem 1.1rem 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .now-card::before {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 3px;
+            background: var(--stripe);
+        }
+
+        .now-name {
+            font-size: 0.68rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 0.1rem;
+        }
+
+        .now-place { font-size: 0.72rem; color: var(--text-dim); opacity: 0.75; margin-bottom: 0.9rem; }
+
+        .now-temp { font-size: 2.6rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+        .now-temp .u { font-size: 1rem; font-weight: 400; color: var(--text-dim); }
+        .now-feels { font-size: 0.78rem; color: var(--text-dim); margin: 0.45rem 0 1rem; }
+
+        .now-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 0.84rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .now-row:last-child { border-bottom: none; }
+        .now-row span { color: var(--text-dim); }
+        .now-row b { font-weight: 700; }
+        .now-row b.rain { color: var(--cool); }
+
+        /* ------------------------------------------------------- score bars */
+        .scores {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.3rem 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 1.1rem;
+        }
+
+        .score-row { margin-bottom: 1.15rem; }
+        .score-row:last-of-type { margin-bottom: 0.4rem; }
+
+        .score-head {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            margin-bottom: 0.45rem;
+        }
+
+        .score-head .factor { font-weight: 700; }
+        .score-head .weight { color: var(--text-dim); font-size: 0.72rem; }
+
+        .bar-pair { display: flex; flex-direction: column; gap: 0.3rem; }
+
+        .bar-line { display: flex; align-items: center; gap: 0.6rem; font-size: 0.72rem; }
+        .bar-line .who { width: 3.6rem; color: var(--text-dim); flex-shrink: 0; }
+        .bar-track {
+            flex: 1;
+            height: 7px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .bar-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease-out; }
+        .bar-line .val { width: 2.4rem; text-align: right; color: var(--text-dim); flex-shrink: 0; }
+
+        .score-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding-top: 1rem;
+            margin-top: 0.4rem;
+            border-top: 1.5px solid var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .score-total b { font-size: 1.1rem; }
+
+        .sun-note {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            margin-top: 0.75rem;
+            line-height: 1.5;
+        }
+
+        /* ----------------------------------------------------------- charts */
+        .chart-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.2rem 1.1rem 1rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .chart-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.9rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .legend { display: flex; gap: 0.9rem; font-size: 0.72rem; color: var(--text-dim); }
+        .legend i {
+            display: inline-block;
+            width: 14px;
+            height: 3px;
+            border-radius: 2px;
+            margin-right: 0.35rem;
+            vertical-align: middle;
+        }
+
+        .chart-box { height: 190px; position: relative; }
+
+        /* ------------------------------------------------------ daily stats */
+        .daily {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.3rem 1.2rem;
+        }
+
+        .daily-grid {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 0.1rem 1rem;
+            font-size: 0.84rem;
+        }
+
+        .daily-grid .h {
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            padding-bottom: 0.6rem;
+        }
+
+        .daily-grid .h.num { text-align: right; }
+
+        .daily-grid .k { color: var(--text-dim); padding: 0.55rem 0; border-top: 1px solid var(--border); }
+        .daily-grid .v {
+            text-align: right;
+            font-weight: 700;
+            padding: 0.55rem 0;
+            border-top: 1px solid var(--border);
+            min-width: 4.4rem;
+        }
+        .daily-grid .v.win { color: var(--accent); }
+
+        /* ------------------------------------------------------------ misc */
+        .status {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            padding: 1.2rem 1rem 0;
+        }
+
+        .error {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-left: 3px solid #b5543f;
+            border-radius: 4px;
+            padding: 1.1rem 1.2rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .error b { display: block; margin-bottom: 0.3rem; }
+
+        .skeleton { opacity: 0.35; }
+
+        @media (max-width: 680px) {
+            .station-btn { padding: 0.45rem 0.9rem; font-size: 0.64rem; }
+            .now-grid { grid-template-columns: 1fr; }
+            .verdict-now { font-size: 1.5rem; }
+            .now-temp { font-size: 2.2rem; }
+            .site-logo { height: 56px; }
+            .wrap { padding: 1.2rem 0.8rem 2.5rem; }
+            .bar-line .who { width: 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="top-nav">
+    <a href="https://www.ragna.is">Heim</a>
+</nav>
+
+<div class="station-switch">
+    <div class="station-switch-inner" role="navigation" aria-label="Veðurstöðvar">
+        <a href="/arbaer/" class="station-btn">Árbær</a>
+        <a href="/vik/" class="station-btn">Vík</a>
+        <a href="/samanburdur/" class="station-btn" aria-current="page">Samanburður</a>
+    </div>
+</div>
+
+<div class="header">
+    <a href="https://www.ragna.is" style="display:block;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="404 377 784 268" class="site-logo" role="img" aria-label="Ragna.is"><path d="M478.3 394.8Q474.0 403.5 475.0 409.0Q476.0 414.5 478.3 416.8Q480.5 419.0 484.3 417.3Q488.0 415.5 490.0 411.0Q492.0 406.5 491.5 399.0Q491.0 391.5 486.8 388.8Q482.5 386.0 478.3 394.8Z M434.3 410.8Q432.0 412.5 434.0 419.0Q436.0 425.5 440.8 429.8Q445.5 434.0 451.5 434.0Q457.5 434.0 458.3 430.8Q459.0 427.5 456.5 423.0Q454.0 418.5 445.3 413.8Q436.5 409.0 434.3 410.8Z M519.0 420.5Q510.5 424.0 508.3 427.3Q506.0 430.5 506.5 433.0Q507.0 435.5 513.3 436.8Q519.5 438.0 524.5 436.0Q529.5 434.0 532.8 430.8Q536.0 427.5 536.5 424.5Q537.0 421.5 532.3 419.3Q527.5 417.0 519.0 420.5Z M1071.3 439.3Q1067.0 442.5 1063.5 450.5Q1060.0 458.5 1060.5 461.5Q1061.0 464.5 1065.3 467.8Q1069.5 471.0 1076.0 469.0Q1082.5 467.0 1086.8 459.3Q1091.0 451.5 1090.0 447.5Q1089.0 443.5 1082.3 439.8Q1075.5 436.0 1071.3 439.3Z M414.8 440.8Q413.0 444.5 416.8 449.3Q420.5 454.0 425.5 456.5Q430.5 459.0 435.0 459.0Q439.5 459.0 441.3 457.3Q443.0 455.5 442.0 451.5Q441.0 447.5 437.8 444.3Q434.5 441.0 425.5 439.0Q416.5 437.0 414.8 440.8Z M474.8 446.8Q469.0 451.5 460.5 464.5Q452.0 477.5 442.5 501.5Q433.0 525.5 429.5 546.5Q426.0 567.5 431.3 572.8Q436.5 578.0 441.3 575.8Q446.0 573.5 450.5 561.0Q455.0 548.5 462.8 539.8Q470.5 531.0 495.8 516.3Q521.0 501.5 518.3 496.3Q515.5 491.0 509.5 490.0Q503.5 489.0 486.5 498.0Q469.5 507.0 467.3 506.8Q465.0 506.5 465.0 503.0Q465.0 499.5 475.0 473.0Q485.0 446.5 482.8 444.3Q480.5 442.0 474.8 446.8Z M503.3 457.3Q498.0 460.5 498.0 463.5Q498.0 466.5 500.3 468.3Q502.5 470.0 510.0 471.0Q517.5 472.0 523.8 468.3Q530.0 464.5 527.8 460.3Q525.5 456.0 517.0 455.0Q508.5 454.0 503.3 457.3Z M1136.5 475.5Q1121.5 482.0 1111.3 491.8Q1101.0 501.5 1097.5 507.5Q1094.0 513.5 1093.0 519.5Q1092.0 525.5 1094.5 533.0Q1097.0 540.5 1108.0 551.0Q1119.0 561.5 1116.3 564.8Q1113.5 568.0 1103.5 567.5Q1093.5 567.0 1091.3 568.8Q1089.0 570.5 1090.0 574.5Q1091.0 578.5 1097.3 582.3Q1103.5 586.0 1116.5 586.5Q1129.5 587.0 1136.0 584.5Q1142.5 582.0 1145.8 578.8Q1149.0 575.5 1149.5 569.5Q1150.0 563.5 1148.5 560.5Q1147.0 557.5 1132.5 544.0Q1118.0 530.5 1117.5 525.5Q1117.0 520.5 1123.3 511.8Q1129.5 503.0 1138.5 497.0Q1147.5 491.0 1151.3 492.3Q1155.0 493.5 1152.5 500.0Q1150.0 506.5 1152.3 511.3Q1154.5 516.0 1159.5 515.5Q1164.5 515.0 1169.8 510.3Q1175.0 505.5 1177.0 501.0Q1179.0 496.5 1178.0 488.5Q1177.0 480.5 1171.3 475.8Q1165.5 471.0 1158.5 470.0Q1151.5 469.0 1136.5 475.5Z M699.0 477.5Q691.5 480.0 676.8 491.8Q662.0 503.5 657.0 510.5Q652.0 517.5 647.0 529.5Q642.0 541.5 642.0 547.0Q642.0 552.5 646.8 557.8Q651.5 563.0 656.5 563.5Q661.5 564.0 674.5 561.0Q687.5 558.0 689.3 561.3Q691.0 564.5 687.0 580.0Q683.0 595.5 677.8 604.3Q672.5 613.0 667.5 614.0Q662.5 615.0 653.0 609.0Q643.5 603.0 639.8 605.8Q636.0 608.5 637.5 614.5Q639.0 620.5 648.8 627.8Q658.5 635.0 667.0 635.0Q675.5 635.0 681.0 632.0Q686.5 629.0 692.3 622.3Q698.0 615.5 709.0 576.0Q720.0 536.5 729.0 524.5Q738.0 512.5 738.0 507.0Q738.0 501.5 734.5 494.5Q731.0 487.5 726.8 483.3Q722.5 479.0 714.5 477.0Q706.5 475.0 699.0 477.5Z M565.3 488.3Q551.0 499.5 537.5 521.5Q524.0 543.5 522.0 554.5Q520.0 565.5 527.8 572.8Q535.5 580.0 542.0 580.0Q548.5 580.0 555.0 577.0Q561.5 574.0 575.5 563.0Q589.5 552.0 601.0 562.5Q612.5 573.0 620.0 574.0Q627.5 575.0 631.3 571.3Q635.0 567.5 635.0 564.5Q635.0 561.5 628.0 555.5Q621.0 549.5 619.0 545.0Q617.0 540.5 617.5 520.5Q618.0 500.5 605.8 489.8Q593.5 479.0 586.5 478.0Q579.5 477.0 565.3 488.3Z M907.3 487.3Q894.0 497.5 883.0 514.5Q872.0 531.5 869.5 548.0Q867.0 564.5 874.3 571.8Q881.5 579.0 886.5 579.5Q891.5 580.0 897.0 578.0Q902.5 576.0 913.5 566.5Q924.5 557.0 927.0 557.0Q929.5 557.0 937.5 565.5Q945.5 574.0 952.0 572.5Q958.5 571.0 963.3 565.8Q968.0 560.5 967.5 556.5Q967.0 552.5 959.5 548.0Q952.0 543.5 953.5 528.0Q955.0 512.5 952.0 503.5Q949.0 494.5 942.3 486.8Q935.5 479.0 928.0 478.0Q920.5 477.0 907.3 487.3Z M773.3 483.8Q769.0 488.5 759.5 509.5Q750.0 530.5 747.5 541.5Q745.0 552.5 746.5 560.0Q748.0 567.5 752.3 570.3Q756.5 573.0 762.0 571.5Q767.5 570.0 782.5 556.0Q797.5 542.0 802.0 540.0Q806.5 538.0 811.3 553.3Q816.0 568.5 821.3 571.8Q826.5 575.0 831.0 574.0Q835.5 573.0 840.8 568.3Q846.0 563.5 849.0 557.5Q852.0 551.5 849.8 549.3Q847.5 547.0 842.5 547.5Q837.5 548.0 835.3 546.3Q833.0 544.5 831.0 529.0Q829.0 513.5 824.8 509.8Q820.5 506.0 816.5 506.0Q812.5 506.0 798.5 514.5Q784.5 523.0 783.3 520.8Q782.0 518.5 787.5 505.0Q793.0 491.5 790.3 486.3Q787.5 481.0 782.5 480.0Q777.5 479.0 773.3 483.8Z M1053.8 500.8Q1050.0 504.5 1041.5 530.0Q1033.0 555.5 1033.0 564.5Q1033.0 573.5 1036.3 577.3Q1039.5 581.0 1043.0 581.0Q1046.5 581.0 1050.3 576.8Q1054.0 572.5 1062.5 545.0Q1071.0 517.5 1070.5 511.5Q1070.0 505.5 1063.8 501.3Q1057.5 497.0 1053.8 500.8Z M707.5 501.0Q712.0 503.5 711.5 509.0Q711.0 514.5 701.3 524.8Q691.5 535.0 685.0 538.0Q678.5 541.0 674.0 541.0Q669.5 541.0 668.3 537.3Q667.0 533.5 670.0 529.0Q673.0 524.5 684.3 513.3Q695.5 502.0 699.3 500.3Q703.0 498.5 707.5 501.0Z M586.0 503.5Q591.0 504.5 592.0 508.0Q593.0 511.5 591.5 515.0Q590.0 518.5 578.8 530.3Q567.5 542.0 559.5 546.0Q551.5 550.0 550.8 547.3Q550.0 544.5 553.0 538.5Q556.0 532.5 562.0 523.5Q568.0 514.5 574.5 508.5Q581.0 502.5 586.0 503.5Z M924.5 504.5Q929.0 505.5 929.0 512.5Q929.0 519.5 921.5 530.5Q914.0 541.5 908.8 546.8Q903.5 552.0 900.0 553.0Q896.5 554.0 894.3 551.3Q892.0 548.5 893.5 542.0Q895.0 535.5 902.0 524.0Q909.0 512.5 914.5 508.0Q920.0 503.5 924.5 504.5Z M987.5 546.5Q982.5 549.0 979.8 552.8Q977.0 556.5 977.5 560.5Q978.0 564.5 982.8 567.8Q987.5 571.0 993.0 570.0Q998.5 569.0 1003.3 563.8Q1008.0 558.5 1005.8 552.8Q1003.5 547.0 998.0 545.5Q992.5 544.0 987.5 546.5Z" fill="#4A3524" fill-rule="evenodd"/></svg>
+    </a>
+    <div class="page-title">Hvar er betra veður?</div>
+</div>
+
+<div class="wrap">
+
+    <div id="errorBox"></div>
+
+    <!-- Verdict -->
+    <div class="verdict" id="verdict">
+        <div class="verdict-label">Niðurstaðan núna</div>
+        <div class="verdict-now skeleton" id="verdictNow">Sæki gögn&hellip;</div>
+        <div class="verdict-reason" id="verdictReason"></div>
+        <div class="verdict-today" id="verdictToday" style="display:none"></div>
+    </div>
+
+    <!-- Current conditions side by side -->
+    <div class="now-grid">
+        <div class="now-card" id="nowArbaer" style="--stripe:#4A3524">
+            <div class="now-name">Árbær</div>
+            <div class="now-place">Ártúnsholt — Reykjavík</div>
+            <div class="now-temp skeleton">—<span class="u">°C</span></div>
+        </div>
+        <div class="now-card" id="nowVik" style="--stripe:#D8B077">
+            <div class="now-name">Vík</div>
+            <div class="now-place">Vík í Mýrdal</div>
+            <div class="now-temp skeleton">—<span class="u">°C</span></div>
+        </div>
+    </div>
+
+    <!-- Score breakdown -->
+    <div class="scores" id="scores" style="display:none">
+        <div class="section-label">Hvernig niðurstaðan fæst</div>
+        <div id="scoreRows"></div>
+        <div class="score-total">
+            <span>Samtals</span>
+            <span><b id="totalA">—</b> <span style="color:var(--text-dim)">Árbær</span>
+                  &nbsp;·&nbsp;
+                  <b id="totalB">—</b> <span style="color:var(--text-dim)">Vík</span></span>
+        </div>
+        <div class="sun-note" id="sunNote"></div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-card">
+        <div class="chart-head">
+            <div class="section-label" style="margin:0">Hiti — síðustu 24 klst.</div>
+            <div class="legend">
+                <span><i style="background:#4A3524"></i>Árbær</span>
+                <span><i style="background:#D8B077"></i>Vík</span>
+            </div>
+        </div>
+        <div class="chart-box"><canvas id="chartTemp"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-head">
+            <div class="section-label" style="margin:0">Vindur — síðustu 24 klst.</div>
+            <div class="legend">
+                <span><i style="background:#4A3524"></i>Árbær</span>
+                <span><i style="background:#D8B077"></i>Vík</span>
+            </div>
+        </div>
+        <div class="chart-box"><canvas id="chartWind"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-head">
+            <div class="section-label" style="margin:0">Úrkoma — uppsöfnuð í dag</div>
+            <div class="legend">
+                <span><i style="background:#4A3524"></i>Árbær</span>
+                <span><i style="background:#D8B077"></i>Vík</span>
+            </div>
+        </div>
+        <div class="chart-box"><canvas id="chartRain"></canvas></div>
+    </div>
+
+    <!-- Daily stats -->
+    <div class="daily" id="daily" style="display:none">
+        <div class="section-label">Dagurinn í tölum</div>
+        <div class="daily-grid" id="dailyGrid"></div>
+    </div>
+
+    <div class="status" id="status">&nbsp;</div>
+</div>
+
+<script>
+'use strict';
+
+/* ------------------------------------------------------------------ config */
+const STATIONS = {
+    a: {
+        key: 'a',
+        name: 'Árbær',
+        place: 'Ártúnsholt — Reykjavík',
+        color: '#4A3524',
+        apiKey: '36de8cc26f8c42eeb9a3f36917866318a4f5d3e393ae4130a38d4a6bf0cf1adc',
+        appKey: '28d59914780d4f958a78fe0d9ed822ad6b6e32f77c45437690d81615d3f8daac',
+    },
+    b: {
+        key: 'b',
+        name: 'Vík',
+        place: 'Vík í Mýrdal',
+        color: '#D8B077',
+        apiKey: '9fcadacc51744b73a07cd169ace3b0f66db277dac5054513907ce3554ec7fe45',
+        appKey: '1b3f9bc1bd4b4288936cbc7c39345af2d07b7369d20b46cbae31fc16308e9157',
+    },
+};
+
+/* Equal weighting — 33 / 33 / 33, chosen by Ragna. */
+const WEIGHTS = { temp: 1 / 3, wind: 1 / 3, rain: 1 / 3 };
+const SUN_BONUS_MAX = 8;      // points, only when the sun is actually up
+const SUN_UP_THRESHOLD = 20;  // W/m² — below this we treat it as no sun anywhere
+const SUNNY_THRESHOLD = 120;  // W/m² — counts as a "sunny" reading for the hours tally
+
+/* ------------------------------------------------------------- conversions */
+const fToC   = f  => (f - 32) * 5 / 9;
+const mphToMs = m => m * 0.44704;
+const inToMm  = i => i * 25.4;
+
+const fmtC  = f  => fToC(f).toFixed(1);
+const fmtMs = m  => mphToMs(m).toFixed(1);
+const fmtMm = i  => inToMm(i).toFixed(1);
+
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+/* ----------------------------------------------------------------- scoring */
+/* Each returns 0–100, higher = more pleasant. Tuned for Icelandic conditions. */
+
+function scoreTemp(c) {
+    // 2°C is miserable, 16°C is a lovely Icelandic day.
+    return clamp(((c - 2) / 14) * 100, 0, 100);
+}
+
+function scoreWind(ms) {
+    // Dead calm is perfect; 12 m/s is thoroughly unpleasant.
+    return clamp(100 - (ms / 12) * 100, 0, 100);
+}
+
+function scoreRain(mmPerHour) {
+    // Any rain hurts, so the curve drops fast at first then flattens.
+    if (mmPerHour <= 0) return 100;
+    return clamp(100 - Math.sqrt(mmPerHour / 2) * 100, 0, 100);
+}
+
+function scoreRainDaily(mmTotal) {
+    if (mmTotal <= 0) return 100;
+    return clamp(100 - Math.sqrt(mmTotal / 12) * 100, 0, 100);
+}
+
+/* Sun is a bonus, not a weighted quarter — otherwise it would be a
+   meaningless nil-nil draw through the long Icelandic winter nights. */
+function sunBonus(solarA, solarB) {
+    const peak = Math.max(solarA, solarB);
+    if (peak < SUN_UP_THRESHOLD) return { a: 0, b: 0, active: false };
+    return {
+        a: (solarA / peak) * SUN_BONUS_MAX,
+        b: (solarB / peak) * SUN_BONUS_MAX,
+        active: true,
+    };
+}
+
+/* ------------------------------------------------------------------- fetch */
+async function fetchJson(url, tries = 3) {
+    for (let i = 0; i < tries; i++) {
+        try {
+            const res = await fetch(url);
+            if (res.status === 429) {           // rate limited — back off
+                await new Promise(r => setTimeout(r, 4000 * (i + 1)));
+                continue;
+            }
+            if (!res.ok) throw new Error('API skilaði ' + res.status);
+            return await res.json();
+        } catch (err) {
+            if (i === tries - 1) throw err;
+            await new Promise(r => setTimeout(r, 2500 * (i + 1)));
+        }
+    }
+    throw new Error('Náði ekki sambandi');
+}
+
+async function loadStation(st) {
+    const devices = await fetchJson(
+        `https://rt.ambientweather.net/v1/devices?apiKey=${st.apiKey}&applicationKey=${st.appKey}`);
+    if (!Array.isArray(devices) || !devices.length) throw new Error(`Engin stöð fannst fyrir ${st.name}`);
+
+    const device = devices[0];
+    // Stagger the history call a little so we stay inside the rate limit.
+    await new Promise(r => setTimeout(r, 1200));
+
+    const history = await fetchJson(
+        `https://rt.ambientweather.net/v1/devices/${device.macAddress}` +
+        `?apiKey=${st.apiKey}&applicationKey=${st.appKey}&limit=288`);
+
+    return {
+        station: st,
+        now: device.lastData,
+        history: (Array.isArray(history) ? history : []).slice().sort((x, y) => x.dateutc - y.dateutc),
+    };
+}
+
+/* ------------------------------------------------------------------ render */
+function renderNow(elId, d) {
+    const n = d.now;
+    const el = document.getElementById(elId);
+    const windMs = mphToMs(n.windspdmph_avg10m ?? n.windspeedmph ?? 0);
+    const gustMs = mphToMs(n.windgustmph ?? 0);
+
+    el.innerHTML = `
+        <div class="now-name">${d.station.name}</div>
+        <div class="now-place">${d.station.place}</div>
+        <div class="now-temp">${fmtC(n.tempf)}<span class="u">°C</span></div>
+        <div class="now-feels">Finnst eins og ${fmtC(n.feelsLike ?? n.tempf)}°C</div>
+        <div class="now-row"><span>Vindur</span><b>${windMs.toFixed(1)} m/s</b></div>
+        <div class="now-row"><span>Hviður</span><b>${gustMs.toFixed(1)} m/s</b></div>
+        <div class="now-row"><span>Úrkoma núna</span><b class="rain">${fmtMm(n.hourlyrainin ?? 0)} mm/klst</b></div>
+        <div class="now-row"><span>Úrkoma í dag</span><b class="rain">${fmtMm(n.dailyrainin ?? 0)} mm</b></div>
+        <div class="now-row"><span>Raki</span><b>${Math.round(n.humidity ?? 0)}%</b></div>
+        <div class="now-row"><span>Sólgeislun</span><b>${Math.round(n.solarradiation ?? 0)} W/m²</b></div>
+    `;
+}
+
+function bar(who, value, color) {
+    return `
+        <div class="bar-line">
+            <span class="who">${who}</span>
+            <span class="bar-track"><span class="bar-fill" style="width:${clamp(value, 0, 100)}%;background:${color}"></span></span>
+            <span class="val">${Math.round(value)}</span>
+        </div>`;
+}
+
+function renderScores(parts, totals, sun) {
+    const rows = parts.map(p => `
+        <div class="score-row">
+            <div class="score-head">
+                <span class="factor">${p.label}</span>
+                <span class="weight">${p.weightLabel} · ${p.detail}</span>
+            </div>
+            <div class="bar-pair">
+                ${bar('Árbær', p.a, STATIONS.a.color)}
+                ${bar('Vík',   p.b, STATIONS.b.color)}
+            </div>
+        </div>`).join('');
+
+    document.getElementById('scoreRows').innerHTML = rows;
+    document.getElementById('totalA').textContent = Math.round(totals.a);
+    document.getElementById('totalB').textContent = Math.round(totals.b);
+
+    const note = document.getElementById('sunNote');
+    if (!sun.active) {
+        note.textContent = 'Sólarbónus: enginn — sólin er ekki uppi á hvorugum staðnum núna. ' +
+                           'Hún getur gefið allt að 8 stig þegar hún skín.';
+    } else {
+        const winner = sun.a > sun.b ? 'Árbæ' : (sun.b > sun.a ? 'Vík' : 'báðum stöðum jafnt');
+        note.textContent = `Sólarbónus: +${sun.a.toFixed(1)} Árbær, +${sun.b.toFixed(1)} Vík ` +
+                           `— mest sól í ${winner} núna. Hámark 8 stig.`;
+    }
+    document.getElementById('scores').style.display = '';
+}
+
+function phrase(dA, dB) {
+    /* Build a short, honest reason from whichever factors actually differ. */
+    const bits = [];
+    const tA = fToC(dA.now.tempf), tB = fToC(dB.now.tempf);
+    const wA = mphToMs(dA.now.windspdmph_avg10m ?? dA.now.windspeedmph ?? 0);
+    const wB = mphToMs(dB.now.windspdmph_avg10m ?? dB.now.windspeedmph ?? 0);
+    const rA = inToMm(dA.now.hourlyrainin ?? 0);
+    const rB = inToMm(dB.now.hourlyrainin ?? 0);
+
+    if (Math.abs(tA - tB) >= 0.5) {
+        bits.push(`${Math.abs(tA - tB).toFixed(1)}°C ${tA > tB ? 'hlýrra í Árbæ' : 'hlýrra í Vík'}`);
+    }
+    if (Math.abs(wA - wB) >= 0.5) {
+        bits.push(`${Math.abs(wA - wB).toFixed(1)} m/s ${wA < wB ? 'hægari vindur í Árbæ' : 'hægari vindur í Vík'}`);
+    }
+    if (rA > 0.05 || rB > 0.05) {
+        if (Math.abs(rA - rB) < 0.05)      bits.push('rignir á báðum stöðum');
+        else if (rA < rB)                  bits.push('þurrt í Árbæ en vætusamt í Vík');
+        else                               bits.push('þurrt í Vík en vætusamt í Árbæ');
+    } else {
+        bits.push('þurrt á báðum stöðum');
+    }
+    return bits.join(', ') + '.';
+}
+
+function renderVerdict(dA, dB, totals, todayTotals) {
+    const el = document.getElementById('verdictNow');
+    const diff = totals.a - totals.b;
+
+    if (Math.abs(diff) < 3) {
+        el.textContent = 'Nokkurn veginn jafnt';
+    } else {
+        el.textContent = diff > 0 ? 'Betra veður í Árbæ' : 'Betra veður í Vík';
+    }
+    el.classList.remove('skeleton');
+
+    document.getElementById('verdictReason').textContent = phrase(dA, dB);
+
+    const td = document.getElementById('verdictToday');
+    const tdiff = todayTotals.a - todayTotals.b;
+    let tText;
+    if (Math.abs(tdiff) < 3) tText = 'nokkurn veginn jafnt';
+    else tText = tdiff > 0 ? 'betra í <b>Árbæ</b>' : 'betra í <b>Vík</b>';
+    td.innerHTML = `Síðasta sólarhringinn í heild: ${tText} ` +
+                   `(${Math.round(todayTotals.a)} á móti ${Math.round(todayTotals.b)}).`;
+    td.style.display = '';
+}
+
+/* ------------------------------------------------------------------ charts */
+/* Fresh options object per chart — Chart.js mutates what it is given,
+   so the three charts must not share one. */
+function chartOptions(unit) {
+    return {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#4A3524',
+                titleColor: '#F7F1E6',
+                bodyColor: '#F7F1E6',
+                borderWidth: 0,
+                padding: 10,
+                cornerRadius: 4,
+                titleFont: { family: 'Gantari', size: 11 },
+                bodyFont: { family: 'Gantari', size: 12 },
+                callbacks: {
+                    label: c => `${c.dataset.label}: ` +
+                        `${c.parsed.y === null || c.parsed.y === undefined ? '—' : c.parsed.y.toFixed(1)} ${unit}`,
+                },
+            },
+        },
+        scales: {
+            x: {
+                grid: { display: false },
+                border: { color: '#EDE4D3' },
+                ticks: {
+                    color: '#8A6844',
+                    font: { family: 'Gantari', size: 10 },
+                    maxRotation: 0,
+                    autoSkip: true,
+                    maxTicksLimit: 7,
+                },
+            },
+            y: {
+                grid: { color: '#EDE4D3' },
+                border: { display: false },
+                ticks: { color: '#8A6844', font: { family: 'Gantari', size: 10 }, maxTicksLimit: 6 },
+            },
+        },
+        elements: { point: { radius: 0, hoverRadius: 4 } },
+    };
+}
+
+const charts = {};
+
+function makeChart(canvasId, labels, seriesA, seriesB, unit) {
+    /* On refresh, update the existing chart instead of stacking a new one
+       on top of the same canvas. */
+    if (charts[canvasId]) {
+        const c = charts[canvasId];
+        c.data.labels = labels;
+        c.data.datasets[0].data = seriesA;
+        c.data.datasets[1].data = seriesB;
+        c.update('none');
+        return c;
+    }
+
+    charts[canvasId] = new Chart(document.getElementById(canvasId), {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Árbær', data: seriesA, borderColor: STATIONS.a.color,
+                    backgroundColor: 'transparent', borderWidth: 2, tension: 0.3, spanGaps: true,
+                },
+                {
+                    label: 'Vík', data: seriesB, borderColor: STATIONS.b.color,
+                    backgroundColor: 'transparent', borderWidth: 2.5, tension: 0.3, spanGaps: true,
+                },
+            ],
+        },
+        options: chartOptions(unit),
+    });
+    return charts[canvasId];
+}
+
+/* Align the two histories onto a shared 10-minute timeline so the lines
+   are genuinely comparable rather than two differently-spaced series. */
+function alignSeries(histA, histB, pick) {
+    const BUCKET = 10 * 60 * 1000;
+    const bucketise = hist => {
+        const m = new Map();
+        hist.forEach(r => {
+            const t = Math.floor(r.dateutc / BUCKET) * BUCKET;
+            const v = pick(r);
+            if (v !== null && v !== undefined && !Number.isNaN(v)) m.set(t, v);
+        });
+        return m;
+    };
+    const mA = bucketise(histA), mB = bucketise(histB);
+    const keys = [...new Set([...mA.keys(), ...mB.keys()])].sort((x, y) => x - y);
+
+    const labels = keys.map(t => {
+        const d = new Date(t);
+        return d.toLocaleTimeString('is-IS', { hour: '2-digit', minute: '2-digit', timeZone: 'Atlantic/Reykjavik' });
+    });
+    return {
+        labels,
+        a: keys.map(t => mA.has(t) ? mA.get(t) : null),
+        b: keys.map(t => mB.has(t) ? mB.get(t) : null),
+    };
+}
+
+/* --------------------------------------------------------------- the day */
+function dailyStats(hist, now) {
+    const temps = hist.map(r => r.tempf).filter(v => v != null);
+    const winds = hist.map(r => r.windspdmph_avg10m ?? r.windspeedmph).filter(v => v != null);
+    const gusts = hist.map(r => r.windgustmph).filter(v => v != null);
+    const sunny = hist.filter(r => (r.solarradiation ?? 0) >= SUNNY_THRESHOLD).length;
+
+    const mean = arr => arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : null;
+
+    return {
+        tMax: temps.length ? Math.max(...temps) : null,
+        tMin: temps.length ? Math.min(...temps) : null,
+        tMean: mean(temps),
+        wMean: mean(winds),
+        gustMax: gusts.length ? Math.max(...gusts) : null,
+        rainDay: now.dailyrainin ?? 0,
+        sunHours: sunny * 5 / 60,   // readings are 5 minutes apart
+    };
+}
+
+function renderDaily(sA, sB) {
+    const rows = [
+        ['Hæsti hiti',      v => fToC(v).toFixed(1) + '°C', 'tMax', 'high'],
+        ['Lægsti hiti',     v => fToC(v).toFixed(1) + '°C', 'tMin', 'high'],
+        ['Meðalhiti',       v => fToC(v).toFixed(1) + '°C', 'tMean', 'high'],
+        ['Meðalvindur',     v => mphToMs(v).toFixed(1) + ' m/s', 'wMean', 'low'],
+        ['Mesta hviða',     v => mphToMs(v).toFixed(1) + ' m/s', 'gustMax', 'low'],
+        ['Úrkoma í dag',    v => inToMm(v).toFixed(1) + ' mm', 'rainDay', 'low'],
+        ['Sólskinsstundir', v => v.toFixed(1) + ' klst', 'sunHours', 'high'],
+    ];
+
+    let html = '<div class="h">&nbsp;</div><div class="h num">Árbær</div><div class="h num">Vík</div>';
+
+    rows.forEach(([label, fmt, key, better]) => {
+        const va = sA[key], vb = sB[key];
+        let winA = false, winB = false;
+        if (va != null && vb != null && Math.abs(va - vb) > 1e-9) {
+            if (better === 'high') { winA = va > vb; winB = vb > va; }
+            else                   { winA = va < vb; winB = vb < va; }
+        }
+        html += `<div class="k">${label}</div>` +
+                `<div class="v${winA ? ' win' : ''}">${va == null ? '—' : fmt(va)}</div>` +
+                `<div class="v${winB ? ' win' : ''}">${vb == null ? '—' : fmt(vb)}</div>`;
+    });
+
+    document.getElementById('dailyGrid').innerHTML = html;
+    document.getElementById('daily').style.display = '';
+}
+
+/* -------------------------------------------------------------------- main */
+function showError(msg) {
+    document.getElementById('errorBox').innerHTML =
+        `<div class="error"><b>Næ ekki í gögn</b>${msg}</div>`;
+}
+
+async function run() {
+    const status = document.getElementById('status');
+    status.textContent = 'Sæki gögn frá báðum stöðvum…';
+
+    let dA, dB;
+    try {
+        dA = await loadStation(STATIONS.a);
+        await new Promise(r => setTimeout(r, 1200));
+        dB = await loadStation(STATIONS.b);
+    } catch (err) {
+        showError(err.message + '. Reyni aftur eftir mínútu.');
+        status.textContent = '';
+        setTimeout(run, 60000);
+        return;
+    }
+    document.getElementById('errorBox').innerHTML = '';
+
+    /* --- current conditions --- */
+    renderNow('nowArbaer', dA);
+    renderNow('nowVik', dB);
+
+    /* --- score it, right now --- */
+    const tA = fToC(dA.now.tempf), tB = fToC(dB.now.tempf);
+    const wA = mphToMs(dA.now.windspdmph_avg10m ?? dA.now.windspeedmph ?? 0);
+    const wB = mphToMs(dB.now.windspdmph_avg10m ?? dB.now.windspeedmph ?? 0);
+    const rA = inToMm(dA.now.hourlyrainin ?? 0);
+    const rB = inToMm(dB.now.hourlyrainin ?? 0);
+
+    const parts = [
+        {
+            label: 'Hiti', weightLabel: '33%',
+            detail: `${tA.toFixed(1)}°C á móti ${tB.toFixed(1)}°C`,
+            a: scoreTemp(tA), b: scoreTemp(tB),
+        },
+        {
+            label: 'Vindur', weightLabel: '33%',
+            detail: `${wA.toFixed(1)} á móti ${wB.toFixed(1)} m/s`,
+            a: scoreWind(wA), b: scoreWind(wB),
+        },
+        {
+            label: 'Úrkoma', weightLabel: '33%',
+            detail: `${rA.toFixed(1)} á móti ${rB.toFixed(1)} mm/klst`,
+            a: scoreRain(rA), b: scoreRain(rB),
+        },
+    ];
+
+    const sun = sunBonus(dA.now.solarradiation ?? 0, dB.now.solarradiation ?? 0);
+
+    const totals = {
+        a: parts.reduce((s, p) => s + p.a, 0) / 3 + sun.a,
+        b: parts.reduce((s, p) => s + p.b, 0) / 3 + sun.b,
+    };
+
+    /* --- score the whole day --- */
+    const sA = dailyStats(dA.history, dA.now);
+    const sB = dailyStats(dB.history, dB.now);
+
+    const todayTotals = {
+        a: (scoreTemp(fToC(sA.tMean ?? dA.now.tempf)) +
+            scoreWind(mphToMs(sA.wMean ?? 0)) +
+            scoreRainDaily(inToMm(sA.rainDay))) / 3,
+        b: (scoreTemp(fToC(sB.tMean ?? dB.now.tempf)) +
+            scoreWind(mphToMs(sB.wMean ?? 0)) +
+            scoreRainDaily(inToMm(sB.rainDay))) / 3,
+    };
+
+    renderVerdict(dA, dB, totals, todayTotals);
+    renderScores(parts, totals, sun);
+    renderDaily(sA, sB);
+
+    /* --- charts --- */
+    const temp = alignSeries(dA.history, dB.history, r => r.tempf == null ? null : fToC(r.tempf));
+    const wind = alignSeries(dA.history, dB.history,
+        r => (r.windspdmph_avg10m ?? r.windspeedmph) == null
+            ? null : mphToMs(r.windspdmph_avg10m ?? r.windspeedmph));
+
+    /* Rain accumulates through the day, which reads far better than a
+       jumpy hourly rate on a 24-hour chart. */
+    const rain = alignSeries(dA.history, dB.history,
+        r => r.dailyrainin == null ? null : inToMm(r.dailyrainin));
+
+    makeChart('chartTemp', temp.labels, temp.a, temp.b, '°C');
+    makeChart('chartWind', wind.labels, wind.a, wind.b, 'm/s');
+    makeChart('chartRain', rain.labels, rain.a, rain.b, 'mm');
+
+    const stamp = new Date().toLocaleTimeString('is-IS',
+        { hour: '2-digit', minute: '2-digit', timeZone: 'Atlantic/Reykjavik' });
+    status.textContent = `Uppfært ${stamp}`;
+}
+
+run();
+setInterval(run, 5 * 60 * 1000);   // refresh every five minutes
+</script>
+
+</body>
+</html>
