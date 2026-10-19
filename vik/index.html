@@ -22,6 +22,9 @@
         });
     </script>
 
+    <!-- Open the weather API connection while the page is still parsing -->
+    <link rel="preconnect" href="https://rt.ambientweather.net" crossorigin>
+    <link rel="preconnect" href="https://api.open-meteo.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Gantari:wght@400;700&display=swap" rel="stylesheet">
@@ -2427,43 +2430,107 @@
         document.getElementById('rainfallCalendar').innerHTML = html;
     }
 
+    // ---------------------------------------------------------------
+    //  Rainfall calendar cache
+    //
+    //  Rain that fell on a past day never changes, so there is no reason
+    //  to re-fetch it on every visit. Completed days are kept in
+    //  localStorage; only today is ever requested again. Keyed by station
+    //  MAC so Árbær and Vík never read each other's figures.
+    // ---------------------------------------------------------------
+    const RAIN_CACHE_VERSION = 'v1';
+
+    function rainCacheKey(year, month) {
+        return `rain:${RAIN_CACHE_VERSION}:${macAddress}:${year}-${month}`;
+    }
+
+    function loadRainCache(year, month) {
+        if (!macAddress) return {};
+        try {
+            const raw = localStorage.getItem(rainCacheKey(year, month));
+            const parsed = raw ? JSON.parse(raw) : null;
+            return (parsed && typeof parsed === 'object') ? parsed : {};
+        } catch (e) {
+            return {};   // private mode, disabled storage, corrupt entry
+        }
+    }
+
+    function saveRainCache(year, month, data, skipDay) {
+        if (!macAddress) return;
+        const keep = {};
+        Object.keys(data).forEach(d => {
+            // Today's total is still climbing — never freeze it.
+            if (Number(d) !== skipDay && typeof data[d] === 'number') keep[d] = data[d];
+        });
+        try {
+            localStorage.setItem(rainCacheKey(year, month), JSON.stringify(keep));
+        } catch (e) {
+            /* Quota or private mode — the page works fine without the cache. */
+        }
+    }
+
     async function loadCalendarMonth(year, month) {
         const key = `${year}-${month}`;
+        const now = new Date();
+        const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1;
+        const lastDay = isCurrentMonth ? now.getDate() : new Date(year, month, 0).getDate();
+        const today = isCurrentMonth ? now.getDate() : null;
+
+        document.getElementById('calMonthLabel').textContent =
+            `${icelandicMonths[month - 1]} ${year}`;
+
+        // Start from whatever is already known, in memory or on disk.
+        const data = Object.assign({}, loadRainCache(year, month), rainfallCache[key] || {});
+
+        // Which days still need a request?
+        const missing = [];
+        for (let day = 1; day <= lastDay; day++) {
+            if (day === today || data[day] === undefined) missing.push(day);
+        }
+
+        if (Object.keys(data).length) {
+            renderCalendarView(year, month, data);   // paint the cached days at once
+        }
+
+        if (!missing.length) {
+            rainfallCache[key] = data;
+            return;
+        }
+
+        if (!Object.keys(data).length) {
+            document.getElementById('rainfallCalendar').innerHTML =
+                '<div class="cal-loading-msg"><div class="spinner" style="margin:0 auto 0.5rem;"></div>Hleð úrkomugögnum...</div>';
+        }
         document.getElementById('calMonthLabel').textContent =
             `${icelandicMonths[month - 1]} ${year} — hleð...`;
-        document.getElementById('rainfallCalendar').innerHTML =
-            '<div class="cal-loading-msg"><div class="spinner" style="margin:0 auto 0.5rem;"></div>Hleð úrkomugögnum...</div>';
 
-        if (!rainfallCache[key]) {
-            const data = {};
-            const now = new Date();
-            const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1;
-            const lastDay = isCurrentMonth ? now.getDate() : new Date(year, month, 0).getDate();
-
-            for (let day = 1; day <= lastDay; day++) {
-                const endDate = new Date(year, month - 1, day, 23, 59, 0).getTime();
-                const url = `https://rt.ambientweather.net/v1/devices/${macAddress}?apiKey=${CONFIG.API_KEY}&applicationKey=${CONFIG.APP_KEY}&endDate=${endDate}&limit=1`;
-                try {
-                    const res = await fetchWithRetry(url);
-                    if (res.ok) {
-                        const json = await res.json();
-                        data[day] = (json && json.length > 0 && json[0].dailyrainin != null)
-                            ? json[0].dailyrainin * 25.4  // inches → mm
-                            : 0;
-                    } else {
-                        data[day] = 0;
-                    }
-                } catch (e) {
+        for (let i = 0; i < missing.length; i++) {
+            const day = missing[i];
+            const endDate = new Date(year, month - 1, day, 23, 59, 0).getTime();
+            const url = `https://rt.ambientweather.net/v1/devices/${macAddress}?apiKey=${CONFIG.API_KEY}&applicationKey=${CONFIG.APP_KEY}&endDate=${endDate}&limit=1`;
+            try {
+                const res = await fetchWithRetry(url);
+                if (res.ok) {
+                    const json = await res.json();
+                    data[day] = (json && json.length > 0 && json[0].dailyrainin != null)
+                        ? json[0].dailyrainin * 25.4  // inches → mm
+                        : 0;
+                } else {
                     data[day] = 0;
                 }
-                // Render progress as each day comes in
-                renderCalendarView(year, month, data);
-                // Respect API rate limit (1 req/sec)
-                if (day < lastDay) await new Promise(r => setTimeout(r, 1200));
+            } catch (e) {
+                data[day] = 0;
             }
-            rainfallCache[key] = data;
+            renderCalendarView(year, month, data);
+            // Respect API rate limit (1 req/sec)
+            if (i < missing.length - 1) await new Promise(r => setTimeout(r, 1200));
         }
-        renderCalendarView(year, month, rainfallCache[key]);
+
+        rainfallCache[key] = data;
+        saveRainCache(year, month, data, today);
+        document.getElementById('calMonthLabel').textContent =
+            `${icelandicMonths[month - 1]} ${year}`;
+        renderCalendarView(year, month, data);
     }
 
     function initCalendarSection() {
@@ -2485,8 +2552,28 @@
             loadCalendarMonth(calYear, calMonth);
         });
 
-        // Load in background after main content settles (3s delay)
-        setTimeout(() => loadCalendarMonth(calYear, calMonth), 3000);
+        // Only fetch the calendar once it is actually about to be seen.
+        // Most visitors check the temperature and never scroll this far,
+        // and the month costs one request per day at 1 request/second.
+        const calTarget = document.getElementById('rainfallCalendar');
+        let calStarted = false;
+        const startCalendar = () => {
+            if (calStarted) return;
+            calStarted = true;
+            loadCalendarMonth(calYear, calMonth);
+        };
+
+        if (calTarget && 'IntersectionObserver' in window) {
+            const io = new IntersectionObserver(entries => {
+                if (entries.some(e => e.isIntersecting)) {
+                    io.disconnect();
+                    startCalendar();
+                }
+            }, { rootMargin: '300px' });
+            io.observe(calTarget);
+        } else {
+            setTimeout(startCalendar, 3000);
+        }
     }
 
     // ============================================================
