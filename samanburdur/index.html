@@ -26,6 +26,15 @@
                 posthog.init('phc_FMMJI5hipn1jsPpEki8ssQeMEv0NA7jA6oG8zAHpQoD', {
                     api_host: 'https://eu.i.posthog.com',
                     person_profiles: 'identified_only',
+
+                    // Flettingar og gestafjöldi — ekkert annað.
+                    // Pageview-atburðir skrást áfram þótt autocapture sé
+                    // slökkt; það er smellja- og innsláttarmælingin sem fer.
+                    autocapture: false,              // engin smellamæling
+                    disable_session_recording: true, // engin skjáupptaka
+                    disable_surveys: true,           // engar kannanir
+                    capture_performance: false,      // engin web-vitals mæling
+                    capture_dead_clicks: false,      // engin "dauðsmella" mæling
                 });
             }
             function whenIdle() {
