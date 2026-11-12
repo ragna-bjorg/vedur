@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       from:
-        description: 'Sækja allt frá þessum degi (ÁÁÁÁ-MM-DD). Autt = síðustu 3 dagar.'
+        description: 'Sækja allt upp á nýtt frá þessum degi (ÁÁÁÁ-MM-DD). Autt = bara það sem vantar.'
         required: false
         default: ''
 
@@ -37,13 +37,18 @@ jobs:
         run: node scripts/collect.mjs
 
       - name: Vista ef eitthvað breyttist
+        # Líka þótt söfnunin renni út á tíma: það sem komið er geymist og næsta keyrsla heldur áfram.
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ ! -f data/daily.json ]; then echo "Engin gagnaskrá."; exit 0; fi
           git add data/daily.json
           if git diff --cached --quiet; then
             echo "Engar breytingar."
           else
             git commit -m "Dagsaga $(date -u +%F)"
+            # Ef eitthvað var vistað í geymsluna á meðan verkið keyrði.
+            git pull --rebase origin main
             git push
           fi
