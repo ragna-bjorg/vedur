@@ -97,6 +97,14 @@
 
         .wrap { max-width: 760px; margin: 0 auto; padding: 1.6rem 1rem 3rem; }
 
+        /* Á breiðum skjá: giskleikur og bingó hlið við hlið. */
+        @media (min-width: 1100px) {
+            .wrap { max-width: 1280px; }
+            .games { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+            .games > .card { margin-bottom: 0; min-width: 0; }
+            .sq { font-size: 0.8rem; }
+        }
+
         .card {
             background: var(--card); border: 1px solid var(--border); border-radius: 4px;
             padding: 1.4rem 1.3rem; margin-bottom: 1rem;
@@ -216,6 +224,7 @@
 
 <div class="wrap">
 
+    <div class="games">
     <!-- Giskaðu á morgundaginn -->
     <div class="card">
         <div class="card-head"><div class="hand card-title">Giskaðu á morgundaginn</div></div>
@@ -265,6 +274,8 @@
         </div>
         <div class="bingo" id="bingo"></div>
         <div class="muted" id="bingoNote"></div>
+    </div>
+
     </div>
 
     <div class="status" id="status">&nbsp;</div>
