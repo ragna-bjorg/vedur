@@ -390,6 +390,32 @@
         }
         .share-card-btn:hover:not(:disabled) { background: var(--border); }
         .share-card-btn:disabled { opacity: 0.4; cursor: default; }
+        .share-card-btn.primary { background: var(--accent); border-color: var(--accent); color: #F7F1E6; font-weight: 700; }
+        .share-card-btn.primary:hover:not(:disabled) { background: var(--accent); }
+
+        .card-dialog {
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--bg);
+            color: var(--text);
+            padding: 1rem;
+            margin: auto;
+            max-width: min(92vw, 420px);
+            text-align: center;
+        }
+        .card-dialog::backdrop { background: rgba(74, 53, 36, 0.55); }
+        .card-dialog img {
+            display: block;
+            margin: 0 auto;
+            max-height: 62vh;
+            max-width: 100%;
+            width: auto;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+        .card-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-top: 0.9rem; }
+        .card-actions .share-card-btn { margin-top: 0; padding: 0.55rem 1rem; }
+        .card-msg { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.7rem; min-height: 1.2em; }
 
         /* ----------------------------------------------------------- charts */
         .chart-card {
@@ -636,6 +662,18 @@
 
     <div class="status" id="status">&nbsp;</div>
 </div>
+
+<!-- Forskoðun á deilimynd -->
+<dialog class="card-dialog" id="cardDialog" aria-label="Deilimynd">
+    <img id="cardImg" alt="Deilimynd með veðrinu í Árbæ og Vík">
+    <div class="card-actions">
+        <button class="share-card-btn primary" id="cardShare">Deila</button>
+        <button class="share-card-btn" id="cardCopy">Afrita mynd</button>
+        <button class="share-card-btn" id="cardSave">Vista mynd</button>
+        <button class="share-card-btn" id="cardClose">Loka</button>
+    </div>
+    <div class="card-msg" id="cardMsg" role="status"></div>
+</dialog>
 
 <script src="/assets/core.js"></script>
 <script>
@@ -1453,6 +1491,14 @@ async function drawShareCard() {
     return canvas;
 }
 
+/* Forskoðun með eigin hnöppum. Deiligluggi stýrikerfisins setur afritaða
+   mynd á klippiborðið í tveimur útgáfum, svo „Afrita mynd" hér notar
+   klippiborðið beint og skilar nákvæmlega einni mynd. */
+let cardBlob = null, cardUrl = null;
+const cardDialog = document.getElementById('cardDialog');
+const cardFile = () => new File([cardBlob], `vedur-${Vedur.todayKey()}.png`, { type: 'image/png' });
+const cardMsg = text => { document.getElementById('cardMsg').textContent = text; };
+
 document.getElementById('shareCard').addEventListener('click', async () => {
     if (!liveState) return;
     const btn = document.getElementById('shareCard');
@@ -1460,30 +1506,56 @@ document.getElementById('shareCard').addEventListener('click', async () => {
     btn.disabled = true;
     btn.textContent = 'Bý til mynd…';
     try {
+        // Bíða eftir dagsögunni (þó ekki endalaust) svo staðan í einvíginu sé með.
+        await Promise.race([dailyReady, new Promise(r => setTimeout(r, 6000))]);
         const canvas = await drawShareCard();
-        const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
-        const file = new File([blob], `vedur-${Vedur.todayKey()}.png`, { type: 'image/png' });
+        cardBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        if (cardUrl) URL.revokeObjectURL(cardUrl);
+        cardUrl = URL.createObjectURL(cardBlob);
+        document.getElementById('cardImg').src = cardUrl;
 
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            // Aðeins myndin sjálf. Ef titill eða slóð fylgir með fær „Afrita" í
-            // deiliglugganum fleiri en einn hlut og myndin límist tvisvar.
-            await navigator.share({ files: [file] });
-        } else {
-            // Tölvur og vafrar sem geta ekki deilt skrám: vista myndina.
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = file.name;
-            document.body.appendChild(a); a.click(); a.remove();
-            setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-        }
+        const canShareFile = !!(navigator.canShare && navigator.canShare({ files: [cardFile()] }));
+        const canCopy = !!(navigator.clipboard && navigator.clipboard.write && window.ClipboardItem);
+        document.getElementById('cardShare').style.display = canShareFile ? '' : 'none';
+        document.getElementById('cardCopy').style.display = canCopy ? '' : 'none';
+        cardMsg('');
+        if (cardDialog.showModal) cardDialog.showModal(); else cardDialog.setAttribute('open', '');
     } catch (e) {
-        if (!e || e.name !== 'AbortError') console.error(e);   // AbortError = hætt við að deila
+        console.error(e);
     }
     btn.textContent = label;
     btn.disabled = false;
 });
 
-initDaily();
+document.getElementById('cardShare').addEventListener('click', async () => {
+    try { await navigator.share({ files: [cardFile()] }); }
+    catch (e) { if (!e || e.name !== 'AbortError') cardMsg('Ekki tókst að opna deilingu.'); }
+});
+
+document.getElementById('cardCopy').addEventListener('click', async () => {
+    try {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': cardBlob })]);
+        cardMsg('Myndin er komin á klippiborðið.');
+    } catch (e) {
+        cardMsg('Vafrinn leyfði ekki afritun. Notaðu „Vista mynd" í staðinn.');
+    }
+});
+
+document.getElementById('cardSave').addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.href = cardUrl;
+    a.download = `vedur-${Vedur.todayKey()}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    cardMsg('Myndin var vistuð.');
+});
+
+document.getElementById('cardClose').addEventListener('click', () => {
+    if (cardDialog.close) cardDialog.close(); else cardDialog.removeAttribute('open');
+});
+// Smellur utan við spjaldið lokar líka.
+cardDialog.addEventListener('click', e => { if (e.target === cardDialog && cardDialog.close) cardDialog.close(); });
+
+const dailyReady = initDaily();
 run();
 setInterval(run, 5 * 60 * 1000);   // refresh every five minutes
 </script>
