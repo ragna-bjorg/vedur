@@ -112,22 +112,31 @@ async function fetchDay(st, startMs) {
         // dags úti og 288 mælingar ná þá nákvæmlega yfir daginn.
         `&endDate=${startMs + DAY - 1}&limit=288`;
 
-    for (let attempt = 0; attempt < 5; attempt++) {
+    let lastErr = null;
+    for (let attempt = 0; attempt < 4; attempt++) {
         try {
-            const res = await fetch(url);
+            // Án tímamarka getur kall hangið í fimm mínútur ef þjónninn svarar ekki.
+            const res = await fetch(url, {
+                signal: AbortSignal.timeout(20000),
+                headers: { 'Accept': 'application/json', 'User-Agent': 'vedur.ragna.is dagsaga (github.com/ragna-bjorg/vedur)' },
+            });
             if (res.status === 429 || res.status >= 500) {
-                await sleep(3000 * (attempt + 1));
+                lastErr = new Error(`HTTP ${res.status}`);
+                await sleep(2500 * (attempt + 1));
                 continue;
             }
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            if (!res.ok) {
+                const body = (await res.text()).slice(0, 200);
+                throw new Error(`HTTP ${res.status} ${body}`);
+            }
             const json = await res.json();
             return Array.isArray(json) ? json : [];
         } catch (err) {
-            if (attempt === 4) throw err;
-            await sleep(3000 * (attempt + 1));
+            lastErr = err;
+            if (attempt < 3) await sleep(2500 * (attempt + 1));
         }
     }
-    throw new Error('Rate limited after 5 attempts');
+    throw lastErr ?? new Error('Óþekkt villa');
 }
 
 async function loadExisting() {
@@ -178,7 +187,11 @@ async function main() {
                 }
             } catch (err) {
                 failures++;
-                console.error(`  ${st.name} ${key}: ${err.message}`);
+                console.error(`  ${st.name} ${key}: ${err.name}: ${err.message}`);
+                if (failures >= 5 && stored === 0) {
+                    if (Object.keys(data.days).length) await save(data);
+                    throw new Error('Ekkert kall kemst í gegn. Hætti í stað þess að reyna allt árið.');
+                }
             }
             fetched++;
             if (fetched % 25 === 0) {
