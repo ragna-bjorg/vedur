@@ -332,8 +332,8 @@
 
         .duel-strip {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
-            gap: 4px;
+            grid-template-columns: repeat(16, 1fr);   /* tvær jafnar raðir á tölvu */
+            gap: 5px;
             margin: 1.1rem 0 0.9rem;
         }
         .duel-day {
@@ -483,6 +483,7 @@
             .station-btn { padding: 0.45rem 0.7rem; font-size: 0.62rem; letter-spacing: 0.08em; }
             .station-switch-inner { flex-wrap: wrap; justify-content: center; }
             .duel-side b { font-size: 2.5rem; }
+            .duel-strip { grid-template-columns: repeat(8, 1fr); }
             .duel-score { gap: 0.6rem; }
             .now-grid { grid-template-columns: 1fr; }
             .verdict-now { font-size: 1.5rem; }
