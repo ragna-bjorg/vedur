@@ -7,9 +7,9 @@
 // sinni á nóttu (sjá .github/workflows/collect.yml), dregur hvern dag saman
 // í fáeinar tölur og síðan les svo bara eina litla skrá.
 //
-//   node scripts/collect.mjs                 síðustu 3 heilu dagar (eða öll
-//                                            sagan ef gagnaskráin er ekki til)
-//   FROM=2026-01-01 node scripts/collect.mjs sækja allt frá tilteknum degi
+//   node scripts/collect.mjs                 sækir þá daga sem vantar og síðustu
+//                                            3 daga upp á nýtt
+//   FROM=2026-01-01 node scripts/collect.mjs sækja allt upp á nýtt frá tilteknum degi
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -138,11 +138,18 @@ async function loadExisting() {
     return null;
 }
 
+async function save(data) {
+    data.days = Object.fromEntries(Object.entries(data.days).sort(([x], [y]) => x.localeCompare(y)));
+    data.updated = new Date().toISOString();
+    await mkdir(path.dirname(DATA_FILE), { recursive: true });
+    await writeFile(DATA_FILE, JSON.stringify(data, null, 1) + '\n');
+}
+
 async function main() {
-    const existing = await loadExisting();
-    const data = existing ?? { updated: null, stations: {}, days: {} };
+    const data = (await loadExisting()) ?? { updated: null, stations: {}, days: {} };
 
     const todayStart = dayStart(dayKey(Date.now()));   // dagurinn í dag er ekki búinn
+    const recent = todayStart - 3 * DAY;               // síðustu dagar eru alltaf sóttir aftur
     const fromEnv = (process.env.FROM || '').trim();
     if (fromEnv && !/^\d{4}-\d{2}-\d{2}$/.test(fromEnv)) {
         throw new Error('FROM verður að vera á forminu ÁÁÁÁ-MM-DD');
@@ -150,15 +157,19 @@ async function main() {
 
     let failures = 0;
     for (const [id, st] of Object.entries(STATIONS)) {
-        let first;
-        if (fromEnv) first = dayStart(fromEnv);
-        else if (!existing) first = dayStart(st.since);
-        else first = todayStart - 3 * DAY;
+        // Byrja þar sem stöðin á fyrst gögn, svo tómir dagar þar á undan séu
+        // ekki sóttir aftur á hverri nóttu.
+        const known = data.stations[id]?.firstDay;
+        let first = dayStart(fromEnv || known || st.since);
         first = Math.max(first, dayStart(st.since));
 
-        let stored = 0;
+        let fetched = 0, stored = 0;
         for (let start = first; start < todayStart; start += DAY) {
             const key = dayKey(start);
+            // Dagar sem eru þegar komnir eru látnir vera. Þannig fyllir hver
+            // keyrsla sjálf í göt eftir keyrslu sem mistókst eða rann út á tíma.
+            if (!fromEnv && start < recent && data.days[key]?.[id]) continue;
+
             try {
                 const summary = summarise(await fetchDay(st, start), start);
                 if (summary) {
@@ -169,17 +180,20 @@ async function main() {
                 failures++;
                 console.error(`  ${st.name} ${key}: ${err.message}`);
             }
-            await sleep(1100);   // eitt kall á sekúndu
+            fetched++;
+            if (fetched % 25 === 0) {
+                console.log(`  ${st.name}: ${fetched} dagar sóttir, kominn að ${key}`);
+                await save(data);     // geyma jafnóðum, ef verkið skyldi renna út á tíma
+            }
+            await sleep(1100);        // eitt kall á sekúndu
         }
-        data.stations[id] = { name: st.name, since: st.since };
-        console.log(`${st.name}: ${stored} dagar frá ${dayKey(first)}`);
+
+        const mine = Object.keys(data.days).filter(k => data.days[k][id]).sort();
+        data.stations[id] = { name: st.name, since: st.since, firstDay: mine[0] ?? null };
+        console.log(`${st.name}: ${stored} dagar vistaðir af ${fetched} sóttum`);
+        await save(data);
     }
 
-    data.days = Object.fromEntries(Object.entries(data.days).sort(([x], [y]) => x.localeCompare(y)));
-    data.updated = new Date().toISOString();
-
-    await mkdir(path.dirname(DATA_FILE), { recursive: true });
-    await writeFile(DATA_FILE, JSON.stringify(data, null, 1) + '\n');
     console.log(`Skrifað: ${Object.keys(data.days).length} dagar alls`);
 
     // Stök misheppnuð köll eru í lagi (næsta keyrsla fyllir í), en ef allt
