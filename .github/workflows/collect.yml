@@ -1,0 +1,49 @@
+name: Safna dagsögu
+
+# Keyrir á hverri nóttu, dregur gærdaginn saman fyrir báðar veðurstöðvar og
+# vistar í data/daily.json. Einvígið, bingóið og metaveggurinn lesa þá skrá.
+
+on:
+  schedule:
+    - cron: '25 0 * * *'        # 00:25 að íslenskum tíma (UTC)
+  workflow_dispatch:
+    inputs:
+      from:
+        description: 'Sækja allt frá þessum degi (ÁÁÁÁ-MM-DD). Autt = síðustu 3 dagar.'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Sækja og draga saman
+        env:
+          FROM: ${{ inputs.from }}
+        run: node scripts/collect.mjs
+
+      - name: Vista ef eitthvað breyttist
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/daily.json
+          if git diff --cached --quiet; then
+            echo "Engar breytingar."
+          else
+            git commit -m "Dagsaga $(date -u +%F)"
+            git push
+          fi
