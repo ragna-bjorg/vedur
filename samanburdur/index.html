@@ -1465,7 +1465,9 @@ document.getElementById('shareCard').addEventListener('click', async () => {
         const file = new File([blob], `vedur-${Vedur.todayKey()}.png`, { type: 'image/png' });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file], title: 'Hvar er betra veður?', url: 'https://vedur.ragna.is/samanburdur/' });
+            // Aðeins myndin sjálf. Ef titill eða slóð fylgir með fær „Afrita" í
+            // deiliglugganum fleiri en einn hlut og myndin límist tvisvar.
+            await navigator.share({ files: [file] });
         } else {
             // Tölvur og vafrar sem geta ekki deilt skrám: vista myndina.
             const a = document.createElement('a');
