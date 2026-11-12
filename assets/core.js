@@ -267,9 +267,12 @@
     /* ---------------------------------------------------------------------- gögn */
     async function loadDaily() {
         let lastErr = null;
+        // Ný slóð á fimm mínútna fresti í stað cache-stillingar: sumir vafrar
+        // (Safari) senda þá aukahaus sem hráskráaþjónn GitHub hafnar.
+        const bust = '?v=' + Math.floor(Date.now() / 300000);
         for (const url of DATA_URLS) {
             try {
-                const res = await fetch(url, { cache: 'no-cache' });
+                const res = await fetch(url + bust);
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const json = await res.json();
                 if (json && typeof json.days === 'object') return json;
