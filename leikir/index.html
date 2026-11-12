@@ -102,6 +102,8 @@
             .wrap { max-width: 1280px; }
             .games { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
             .games > .card { margin-bottom: 0; min-width: 0; }
+            .games > .col { min-width: 0; }
+            .games > .col > .card:last-child { margin-bottom: 0; }
             .sq { font-size: 0.8rem; }
         }
 
@@ -155,6 +157,28 @@
         .h-line { display: flex; justify-content: space-between; gap: 0.8rem; color: var(--text-dim); padding: 0.1rem 0; }
         .h-line b { color: var(--text); font-weight: 700; white-space: nowrap; }
 
+        /* ------------------------------------------------- hærra eða lægra */
+        .hl-modes { display: inline-flex; gap: 0.2rem; padding: 0.2rem; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; }
+        .hl-modes button {
+            font-family: inherit; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--text-dim); background: transparent; border: 0; border-radius: 999px;
+            padding: 0.35rem 0.8rem; cursor: pointer;
+        }
+        .hl-modes button[aria-pressed="true"] { background: var(--accent); color: #F7F1E6; font-weight: 700; }
+
+        .hl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1.1rem 0; }
+        .hl-grid .guess-box { text-align: center; padding: 1rem 0.6rem 1.1rem; }
+        .hl-when { font-size: 0.95rem; font-weight: 700; }
+        .hl-where { font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim); margin: 0.15rem 0 0.7rem; }
+        .hl-what { font-size: 0.72rem; color: var(--text-dim); }
+        .hl-value { font-size: 2.1rem; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; }
+        .hl-value.hidden { color: var(--text-dim); }
+        .guess-box.right { background: var(--card); }
+        .guess-box.wrong { background: var(--border); }
+
+        .hl-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .btn.ghost { background: var(--bg); color: var(--text); border-color: var(--border); }
+
         /* ----------------------------------------------------------- bingó */
         .nav { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--text-dim); }
         .nav button {
@@ -194,6 +218,8 @@
             .wrap { padding: 1.2rem 0.8rem 2.5rem; }
             .card { padding: 1.1rem 0.9rem; }
             .guess-grid { grid-template-columns: 1fr; }
+            .hl-value { font-size: 1.7rem; }
+            .hl-grid { gap: 0.5rem; }
             .sq { padding: 0.25rem; }
             .sq.hit::after { top: 4px; right: 4px; width: 10px; height: 10px; }
             .bingo { gap: 4px; }
@@ -225,6 +251,7 @@
 <div class="wrap">
 
     <div class="games">
+    <div class="col">
     <!-- Giskaðu á morgundaginn -->
     <div class="card">
         <div class="card-head"><div class="hand card-title">Giskaðu á morgundaginn</div></div>
@@ -260,6 +287,33 @@
             <span>Þú <b id="tallyUser">0</b> &ndash; <b id="tallyFc">0</b> Spáin</span>
         </div>
         <div class="history" id="history"></div>
+    </div>
+
+    <!-- Hærra eða lægra -->
+    <div class="card" id="hlCard">
+        <div class="card-head">
+            <div class="hand card-title">Hærra eða lægra</div>
+            <div class="hl-modes" id="hlModes" role="group" aria-label="Hvað á að bera saman"></div>
+        </div>
+        <div class="muted" id="hlLead">Alvöru dagar úr sögu stöðvanna. Hvað nærðu mörgum réttum í röð?</div>
+
+        <div class="hl-grid">
+            <div class="guess-box" id="hlA"></div>
+            <div class="guess-box" id="hlB"></div>
+        </div>
+
+        <div class="hl-actions">
+            <button class="btn" id="hlUp"></button>
+            <button class="btn ghost" id="hlDown"></button>
+            <button class="btn" id="hlAgain" style="display:none">Spila aftur</button>
+        </div>
+        <div class="guess-status" id="hlStatus" role="status"></div>
+
+        <div class="tally">
+            <span>Rétt í röð</span>
+            <span><b id="hlStreak">0</b> &nbsp;·&nbsp; met <b id="hlBest">0</b></span>
+        </div>
+    </div>
     </div>
 
     <!-- Veðurbingó -->
@@ -455,10 +509,120 @@ function renderBingo() {
 document.getElementById('bingoPrev').addEventListener('click', () => { bingoYm = shiftMonth(bingoYm, -1); renderBingo(); });
 document.getElementById('bingoNext').addEventListener('click', () => { bingoYm = shiftMonth(bingoYm, 1); renderBingo(); });
 
+/* -------------------------------------------------------- hærra eða lægra */
+const HL_KEY = 'vedur:haerra:v1';
+const HL_MODES = {
+    temp: { label: 'Hiti',   field: 'tMax',    what: 'Hæsti hiti',  fmt: v => v.toFixed(1) + '°C',  up: 'Hlýrra',   down: 'Kaldara' },
+    gust: { label: 'Hviða',  field: 'gustMax', what: 'Mesta hviða', fmt: v => v.toFixed(1) + ' m/s', up: 'Hvassara', down: 'Lygnara' },
+    rain: { label: 'Úrkoma', field: 'rain',    what: 'Úrkoma',      fmt: v => v.toFixed(1) + ' mm',  up: 'Blautara', down: 'Þurrara' },
+};
+const hl = { mode: 'temp', pool: [], a: null, b: null, streak: 0, busy: false, over: false };
+
+const hlBest = () => { try { return JSON.parse(localStorage.getItem(HL_KEY) || '{}') || {}; } catch (e) { return {}; } };
+const hlSaveBest = best => { try { localStorage.setItem(HL_KEY, JSON.stringify(best)); } catch (e) { /* geymist þá ekki */ } };
+
+/** Allir nothæfir stöðvardagar með gildi fyrir valda mælingu. */
+function hlBuildPool(mode) {
+    const field = HL_MODES[mode].field, out = [];
+    if (!daily) return out;
+    Object.keys(daily.days).forEach(key => ['a', 'b'].forEach(id => {
+        const s = daily.days[key][id];
+        if (V.usable(s) && typeof s[field] === 'number') out.push({ key, id, value: s[field] });
+    }));
+    return out;
+}
+
+/** Slembidagur sem er hvorki sá sami né með sama gildi og sá sem fyrir er. */
+function hlPick(other) {
+    for (let i = 0; i < 60; i++) {
+        const c = hl.pool[Math.floor(Math.random() * hl.pool.length)];
+        if (!other || (c.value !== other.value && !(c.key === other.key && c.id === other.id))) return c;
+    }
+    return hl.pool[Math.floor(Math.random() * hl.pool.length)];
+}
+
+function hlBox(el, item, show, verdict) {
+    const st = V.STATIONS[item.id], m = HL_MODES[hl.mode];
+    el.style.setProperty('--stripe', st.color);
+    el.className = 'guess-box' + (verdict ? ' ' + verdict : '');
+    el.innerHTML = `<div class="hl-when">${V.shortDate(item.key)}</div>` +
+                   `<div class="hl-where">${st.name}</div>` +
+                   `<div class="hl-value${show ? '' : ' hidden'}">${show ? m.fmt(item.value) : '?'}</div>` +
+                   `<div class="hl-what">${m.what}</div>`;
+}
+
+function hlRender(revealB, verdict) {
+    const m = HL_MODES[hl.mode];
+    document.getElementById('hlModes').innerHTML = Object.entries(HL_MODES).map(([k, v]) =>
+        `<button type="button" data-mode="${k}" aria-pressed="${k === hl.mode}">${v.label}</button>`).join('');
+    document.getElementById('hlStreak').textContent = hl.streak;
+    document.getElementById('hlBest').textContent = hlBest()[hl.mode] || 0;
+
+    const up = document.getElementById('hlUp'), down = document.getElementById('hlDown'), again = document.getElementById('hlAgain');
+    up.textContent = m.up; down.textContent = m.down;
+
+    if (hl.pool.length < 2) {
+        document.getElementById('hlA').innerHTML = document.getElementById('hlB').innerHTML = '';
+        up.style.display = down.style.display = again.style.display = 'none';
+        document.getElementById('hlStatus').textContent = daily
+            ? 'Ekki nóg af dögum enn fyrir þennan leik.' : 'Dagsagan er ekki tilbúin enn. Hún uppfærist á hverri nóttu.';
+        return;
+    }
+    hlBox(document.getElementById('hlA'), hl.a, true);
+    hlBox(document.getElementById('hlB'), hl.b, !!revealB, verdict);
+    up.style.display = down.style.display = hl.over ? 'none' : '';
+    again.style.display = hl.over ? '' : 'none';
+    up.disabled = down.disabled = hl.busy;
+}
+
+function hlStart(mode) {
+    if (mode) hl.mode = mode;
+    hl.pool = hlBuildPool(hl.mode);
+    hl.streak = 0; hl.busy = false; hl.over = false;
+    if (hl.pool.length >= 2) { hl.a = hlPick(null); hl.b = hlPick(hl.a); }
+    document.getElementById('hlStatus').textContent = '';
+    hlRender(false);
+}
+
+function hlGuess(dir) {
+    if (hl.busy || hl.over || hl.pool.length < 2) return;
+    const m = HL_MODES[hl.mode];
+    const higher = hl.b.value > hl.a.value;
+    const correct = (dir === 'up') === higher;
+    const status = document.getElementById('hlStatus');
+    const fact = `${V.shortDate(hl.b.key)} í ${V.STATIONS[hl.b.id].dative}: ${m.fmt(hl.b.value)}`;
+
+    if (correct) {
+        hl.streak++;
+        hl.busy = true;
+        const best = hlBest();
+        if (hl.streak > (best[hl.mode] || 0)) { best[hl.mode] = hl.streak; hlSaveBest(best); }
+        status.textContent = `Rétt! ${fact}.`;
+        hlRender(true, 'right');
+        setTimeout(() => {
+            hl.a = hl.b; hl.b = hlPick(hl.a); hl.busy = false;
+            hlRender(false);
+        }, 1300);
+    } else {
+        hl.over = true;
+        status.textContent = `Ekki alveg. ${fact}. Þú náðir ${hl.streak} í röð.`;
+        hlRender(true, 'wrong');
+    }
+}
+
+document.getElementById('hlUp').addEventListener('click', () => hlGuess('up'));
+document.getElementById('hlDown').addEventListener('click', () => hlGuess('down'));
+document.getElementById('hlAgain').addEventListener('click', () => hlStart());
+document.getElementById('hlModes').addEventListener('click', e => {
+    const b = e.target.closest('button[data-mode]');
+    if (b) hlStart(b.dataset.mode);
+});
+
 /* -------------------------------------------------------------------- ræsa */
 renderGuessForm();
 renderHistory();
 renderBingo();
+hlStart();
 
 V.loadDaily()
     .then(d => {
@@ -468,7 +632,7 @@ V.loadDaily()
             `Dagsaga uppfærð ${V.shortDate(d.updated.slice(0, 10))}`;
     })
     .catch(() => { daily = null; })
-    .finally(() => { renderHistory(); renderBingo(); });
+    .finally(() => { renderHistory(); renderBingo(); hlStart(); });
 </script>
 
 </body>
