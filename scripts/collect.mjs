@@ -7,9 +7,10 @@
 // sinni á nóttu (sjá .github/workflows/collect.yml), dregur hvern dag saman
 // í fáeinar tölur og síðan les svo bara eina litla skrá.
 //
-//   node scripts/collect.mjs                 sækir þá daga sem vantar og síðustu
-//                                            3 daga upp á nýtt
-//   FROM=2026-01-01 node scripts/collect.mjs sækja allt upp á nýtt frá tilteknum degi
+//   node scripts/collect.mjs                 síðustu 3 dagar upp á nýtt, svo eldri
+//                                            saga sem vantar, nýjast fyrst
+//   FROM=2026-01-01 node scripts/collect.mjs sækja allt upp á nýtt aftur að tilteknum degi
+//   BUDGET_MIN=30                            hámarkstími; næsta keyrsla heldur áfram
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -154,64 +155,82 @@ async function save(data) {
     await writeFile(DATA_FILE, JSON.stringify(data, null, 1) + '\n');
 }
 
-async function main() {
+/** Hvaða daga á að sækja fyrir eina stöð, í forgangsröð: fyrst síðustu
+    þrír dagar, svo dagar sem mistókust síðast, og loks eldri saga, nýjast fyrst. */
+export function plan(state, since, todayStart, fromKey) {
+    const keys = [];
+    const push = k => { if (k >= since && !keys.includes(k)) keys.push(k); };
+    for (let i = 1; i <= 3; i++) push(dayKey(todayStart - i * DAY));
+    if (fromKey) {
+        for (let t = todayStart - DAY; t >= dayStart(fromKey); t -= DAY) push(dayKey(t));
+        return keys;
+    }
+    (state.retry || []).forEach(push);
+    const resume = state.oldest ? dayStart(state.oldest) - DAY : todayStart - DAY;
+    for (let t = resume; t >= dayStart(since); t -= DAY) push(dayKey(t));
+    return keys;
+}
+
+export async function main() {
     const data = (await loadExisting()) ?? { updated: null, stations: {}, days: {} };
 
+    const started = Date.now();
+    const budgetMs = Number(process.env.BUDGET_MIN || 30) * 60 * 1000;
     const todayStart = dayStart(dayKey(Date.now()));   // dagurinn í dag er ekki búinn
-    const recent = todayStart - 3 * DAY;               // síðustu dagar eru alltaf sóttir aftur
+    const recentFrom = dayKey(todayStart - 3 * DAY);
     const fromEnv = (process.env.FROM || '').trim();
     if (fromEnv && !/^\d{4}-\d{2}-\d{2}$/.test(fromEnv)) {
         throw new Error('FROM verður að vera á forminu ÁÁÁÁ-MM-DD');
     }
 
-    let failures = 0;
-    for (const [id, st] of Object.entries(STATIONS)) {
-        // Byrja þar sem stöðin á fyrst gögn, svo tómir dagar þar á undan séu
-        // ekki sóttir aftur á hverri nóttu.
-        const known = data.stations[id]?.firstDay;
-        let first = dayStart(fromEnv || known || st.since);
-        first = Math.max(first, dayStart(st.since));
+    let failures = 0, successes = 0, outOfTime = false;
+
+    // Vík á undan: stutt saga, og einvígið þarf báðar stöðvar.
+    for (const id of ['b', 'a']) {
+        const st = STATIONS[id];
+        const state = data.stations[id] = { name: st.name, since: st.since,
+            oldest: data.stations[id]?.oldest ?? null, retry: data.stations[id]?.retry ?? [] };
+        const todo = plan(state, st.since, todayStart, fromEnv);
 
         let fetched = 0, stored = 0;
-        for (let start = first; start < todayStart; start += DAY) {
-            const key = dayKey(start);
-            // Dagar sem eru þegar komnir eru látnir vera. Þannig fyllir hver
-            // keyrsla sjálf í göt eftir keyrslu sem mistókst eða rann út á tíma.
-            if (!fromEnv && start < recent && data.days[key]?.[id]) continue;
+        for (const key of todo) {
+            if (Date.now() - started > budgetMs) { outOfTime = true; break; }
+
+            const done = () => {
+                state.retry = state.retry.filter(k => k !== key);
+                if (!state.oldest || key < state.oldest) state.oldest = key;
+            };
+            // Eldri dagar sem eru þegar komnir eru ekki sóttir aftur.
+            if (!fromEnv && key < recentFrom && data.days[key]?.[id]) { done(); continue; }
 
             try {
-                const summary = summarise(await fetchDay(st, start), start);
-                if (summary) {
-                    (data.days[key] ??= {})[id] = summary;
-                    stored++;
-                }
+                const summary = summarise(await fetchDay(st, dayStart(key)), dayStart(key));
+                if (summary) { (data.days[key] ??= {})[id] = summary; stored++; }
+                successes++;
+                done();
             } catch (err) {
                 failures++;
+                if (!state.retry.includes(key)) state.retry.push(key);
                 console.error(`  ${st.name} ${key}: ${err.name}: ${err.message}`);
-                if (failures >= 5 && stored === 0) {
-                    if (Object.keys(data.days).length) await save(data);
-                    throw new Error('Ekkert kall kemst í gegn. Hætti í stað þess að reyna allt árið.');
+                if (failures >= 8 && successes === 0) {
+                    throw new Error('Ekkert kall kemst í gegn. Hætti í stað þess að reyna alla söguna.');
                 }
             }
             fetched++;
-            if (fetched % 25 === 0) {
-                console.log(`  ${st.name}: ${fetched} dagar sóttir, kominn að ${key}`);
-                await save(data);     // geyma jafnóðum, ef verkið skyldi renna út á tíma
+            if (fetched % 20 === 0) {
+                console.log(`  ${st.name}: ${fetched} dagar sóttir, kominn aftur að ${key}`);
+                await save(data);     // geyma jafnóðum
             }
             await sleep(1100);        // eitt kall á sekúndu
         }
-
-        const mine = Object.keys(data.days).filter(k => data.days[k][id]).sort();
-        data.stations[id] = { name: st.name, since: st.since, firstDay: mine[0] ?? null };
-        console.log(`${st.name}: ${stored} dagar vistaðir af ${fetched} sóttum`);
+        console.log(`${st.name}: ${stored} dagar vistaðir af ${fetched} sóttum` +
+                    (state.oldest ? `, saga nær aftur að ${state.oldest}` : ''));
         await save(data);
+        if (outOfTime) break;
     }
 
-    console.log(`Skrifað: ${Object.keys(data.days).length} dagar alls`);
-
-    // Stök misheppnuð köll eru í lagi (næsta keyrsla fyllir í), en ef allt
-    // bregst á keyrslan að sjást sem misheppnuð í GitHub.
-    if (failures > 20) process.exit(1);
+    console.log(`Skrifað: ${Object.keys(data.days).length} dagar alls` +
+                (outOfTime ? '. Tíminn kláraðist, næsta keyrsla heldur áfram með eldri sögu.' : ''));
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
