@@ -51,7 +51,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Gantari:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Gantari:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
             integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw=="
             crossorigin="anonymous"></script>
@@ -135,10 +135,16 @@
 
         .site-logo { height: 80px; width: auto; display: block; margin: 0 auto; }
 
+        /* Caveat er handskriftarletur vörumerkisins: aðeins stuttar fyrirsagnir. */
+        .hand { font-family: 'Caveat', cursive; font-weight: 600; letter-spacing: 0; text-transform: none; }
+
         .page-title {
-            font-size: 0.95rem;
-            color: var(--text-dark, var(--text));
-            margin-top: 0.8rem;
+            font-family: 'Caveat', cursive;
+            font-weight: 600;
+            font-size: 1.9rem;
+            line-height: 1.1;
+            color: var(--text);
+            margin-top: 0.6rem;
         }
 
         .wrap { max-width: 1000px; margin: 0 auto; padding: 1.6rem 1rem 3rem; }
@@ -249,7 +255,7 @@
 
         .score-detail {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 0.8rem;
             font-size: 0.72rem;
             color: var(--text-dim);
@@ -277,6 +283,113 @@
             margin-top: 0.75rem;
             line-height: 1.5;
         }
+
+
+        /* ------------------------------------------------------------ einvígi */
+        .duel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.3rem 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .duel-title { font-size: 1.9rem; line-height: 1; }
+        .duel-lead { text-align: center; font-size: 1.5rem; line-height: 1.1; margin-top: 0.2rem; min-height: 1.1em; }
+
+        .duel-nav { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--text-dim); }
+        .duel-nav button {
+            font-family: inherit;
+            width: 1.7rem; height: 1.7rem;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: var(--bg);
+            color: var(--text);
+            cursor: pointer;
+            line-height: 1;
+        }
+        .duel-nav button:disabled { opacity: 0.35; cursor: default; }
+
+        .duel-score {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 1rem;
+            margin: 0.6rem 0 0.3rem;
+        }
+        .duel-side { display: flex; align-items: baseline; gap: 0.6rem; }
+        .duel-side b { font-size: 3.2rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+        .duel-name {
+            font-size: 0.7rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            padding-bottom: 3px;
+            border-bottom: 3px solid var(--mark);
+        }
+        .duel-dash { font-size: 2rem; color: var(--text-dim); }
+        .duel-sub { text-align: center; font-size: 0.84rem; color: var(--text-dim); min-height: 1.2em; }
+
+        .duel-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+            gap: 4px;
+            margin: 1.1rem 0 0.9rem;
+        }
+        .duel-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.68rem;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-dim);
+        }
+        .duel-day.a   { background: #4A3524; border-color: #4A3524; color: #F7F1E6; font-weight: 700; }
+        .duel-day.b   { background: #D8B077; border-color: #D8B077; color: #4A3524; font-weight: 700; }
+        .duel-day.tie { background: var(--border); color: var(--text); }
+        .duel-day.future { opacity: 0.45; }
+
+        .duel-foot { font-size: 0.84rem; text-align: center; padding-top: 0.9rem; border-top: 1px solid var(--border); }
+        .duel-rules { font-size: 0.74rem; color: var(--text-dim); line-height: 1.5; margin-top: 0.7rem; text-align: center; }
+
+        /* -------------------------------------------------------- metaveggur */
+        .rec-title { font-size: 1.9rem; line-height: 1; margin-bottom: 1rem; }
+        .rec-grid .v { line-height: 1.25; }
+        .rec-grid .v small { display: block; font-weight: 400; font-size: 0.7rem; color: var(--text-dim); }
+        .rec-new {
+            display: inline-block;
+            font-size: 0.56rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #F7F1E6;
+            background: var(--accent);
+            border-radius: 999px;
+            padding: 0.1rem 0.45rem;
+            margin-right: 0.4rem;
+            vertical-align: middle;
+        }
+
+        /* --------------------------------------------------------- deilimynd */
+        .share-card-btn {
+            font-family: inherit;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 0.55rem 1.3rem;
+            margin-top: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .share-card-btn:hover:not(:disabled) { background: var(--border); }
+        .share-card-btn:disabled { opacity: 0.4; cursor: default; }
 
         /* ----------------------------------------------------------- charts */
         .chart-card {
@@ -367,7 +480,10 @@
         .skeleton { opacity: 0.35; }
 
         @media (max-width: 680px) {
-            .station-btn { padding: 0.45rem 0.9rem; font-size: 0.64rem; }
+            .station-btn { padding: 0.45rem 0.7rem; font-size: 0.62rem; letter-spacing: 0.08em; }
+            .station-switch-inner { flex-wrap: wrap; justify-content: center; }
+            .duel-side b { font-size: 2.5rem; }
+            .duel-score { gap: 0.6rem; }
             .now-grid { grid-template-columns: 1fr; }
             .verdict-now { font-size: 1.5rem; }
             .now-temp { font-size: 2.2rem; }
@@ -390,6 +506,7 @@
         <a href="/arbaer/" class="station-btn">Árbær</a>
         <a href="/vik/" class="station-btn">Vík</a>
         <a href="/samanburdur/" class="station-btn" aria-current="page">Samanburður</a>
+        <a href="/leikir/" class="station-btn">Leikir</a>
     </div>
 </div>
 
@@ -409,6 +526,7 @@
         <div class="verdict-label">Niðurstaðan núna</div>
         <div class="verdict-now skeleton" id="verdictNow">Sæki gögn&hellip;</div>
         <div class="verdict-reason" id="verdictReason"></div>
+        <button class="share-card-btn" id="shareCard" disabled>Deila stöðunni</button>
     </div>
 
     <!-- Current conditions side by side -->
@@ -423,6 +541,29 @@
             <div class="now-place">Vík í Mýrdal</div>
             <div class="now-temp skeleton">—<span class="u">°C</span></div>
         </div>
+    </div>
+
+    <!-- Veðureinvígið -->
+    <div class="duel" id="duel" style="display:none">
+        <div class="chart-head">
+            <div class="hand duel-title">Veðureinvígið</div>
+            <div class="duel-nav">
+                <button id="duelPrev" aria-label="Fyrri mánuður">&lsaquo;</button>
+                <span id="duelMonth"></span>
+                <button id="duelNext" aria-label="Næsti mánuður">&rsaquo;</button>
+            </div>
+        </div>
+        <div class="duel-score">
+            <div class="duel-side"><span class="duel-name" style="--mark:#4A3524">Árbær</span><b id="duelA">–</b></div>
+            <div class="duel-dash">&ndash;</div>
+            <div class="duel-side"><b id="duelB">–</b><span class="duel-name" style="--mark:#D8B077">Vík</span></div>
+        </div>
+        <div class="hand duel-lead" id="duelLead"></div>
+        <div class="duel-sub" id="duelSub"></div>
+        <div class="duel-strip" id="duelStrip"></div>
+        <div class="duel-foot" id="duelFoot"></div>
+        <div class="duel-rules">Hver dagur er dæmdur eftir vindi og úrkomu (35% hvort), sólskini og hita (15% hvort).
+            Minni munur en 3 stig er jafntefli. Uppfært á hverri nóttu.</div>
     </div>
 
     <!-- Score breakdown -->
@@ -485,9 +626,17 @@
         <div class="daily-grid" id="dailyGrid"></div>
     </div>
 
+    <!-- Metaveggurinn -->
+    <div class="daily" id="records" style="display:none; margin-top:0.9rem">
+        <div class="hand rec-title" id="recTitle">Metaveggurinn</div>
+        <div class="daily-grid rec-grid" id="recGrid"></div>
+        <div class="sun-note" id="recNote"></div>
+    </div>
+
     <div class="status" id="status">&nbsp;</div>
 </div>
 
+<script src="/assets/core.js"></script>
 <script>
 'use strict';
 
@@ -512,9 +661,6 @@ const STATIONS = {
 };
 
 /* Equal weighting — 33 / 33 / 33, chosen by Ragna. */
-const WEIGHTS = { temp: 1 / 3, wind: 1 / 3, rain: 1 / 3 };
-const SUN_BONUS_MAX = 8;      // points, only when the sun is actually up
-const SUN_UP_THRESHOLD = 20;  // W/m² — below this we treat it as no sun anywhere
 const SUNNY_THRESHOLD = 120;  // W/m² — counts as a "sunny" reading for the hours tally
 
 /* ------------------------------------------------------------- conversions */
@@ -552,17 +698,6 @@ function scoreRainDaily(mmTotal) {
     return clamp(100 - Math.sqrt(mmTotal / 12) * 100, 0, 100);
 }
 
-/* Sun is a bonus, not a weighted quarter — otherwise it would be a
-   meaningless nil-nil draw through the long Icelandic winter nights. */
-function sunBonus(solarA, solarB) {
-    const peak = Math.max(solarA, solarB);
-    if (peak < SUN_UP_THRESHOLD) return { a: 0, b: 0, active: false };
-    return {
-        a: (solarA / peak) * SUN_BONUS_MAX,
-        b: (solarB / peak) * SUN_BONUS_MAX,
-        active: true,
-    };
-}
 
 /* ------------------------------------------------------------------- fetch */
 async function fetchJson(url, tries = 3) {
@@ -708,15 +843,9 @@ function renderScores(parts, totals, sun) {
     document.getElementById('totalA').textContent = Math.round(totals.a);
     document.getElementById('totalB').textContent = Math.round(totals.b);
 
-    const note = document.getElementById('sunNote');
-    if (!sun.active) {
-        note.textContent = 'Sólarbónus: enginn — sólin er ekki uppi á hvorugum staðnum núna. ' +
-                           'Hún getur gefið allt að 8 stig þegar hún skín.';
-    } else {
-        const winner = sun.a > sun.b ? 'Árbæ' : (sun.b > sun.a ? 'Vík' : 'báðum stöðum jafnt');
-        note.textContent = `Sólarbónus: +${sun.a.toFixed(1)} Árbær, +${sun.b.toFixed(1)} Vík ` +
-                           `— mest sól í ${winner} núna. Hámark 8 stig.`;
-    }
+    document.getElementById('sunNote').textContent =
+        'Rok og rigning vega mest (35% hvort), sól og hiti minna (15% hvort). ' +
+        (sun.active ? '' : 'Sólin er ekki uppi núna, svo hvorugur staðurinn fær sólarstig.');
     document.getElementById('scores').style.display = '';
 }
 
@@ -1014,29 +1143,39 @@ async function run() {
     const rA = inToMm(dA.now.hourlyrainin ?? 0);
     const rB = inToMm(dB.now.hourlyrainin ?? 0);
 
+    // Vægið kemur úr sameiginlega kjarnanum, svo dómurinn núna og einvígið
+    // fylgja alltaf sömu reglum: rok og rigning vega mest, hitinn minnst.
+    const WT = Vedur.WEIGHTS;
+    const solA = dA.now.solarradiation ?? 0, solB = dB.now.solarradiation ?? 0;
+    const sun = Vedur.sunPoints(solA, solB, Vedur.SUN_FLOOR_WM2);
+    sun.active = Math.max(solA, solB) >= 1;
+
     const parts = [
         {
-            label: 'Hiti', weightLabel: '33%',
-            detail: `${tA.toFixed(1)}°C á móti ${tB.toFixed(1)}°C`,
-            a: scoreTemp(tA), b: scoreTemp(tB),
-        },
-        {
-            label: 'Vindur', weightLabel: '33%',
+            label: 'Vindur', weight: WT.wind, weightLabel: '35%',
             detail: `${wA.toFixed(1)} á móti ${wB.toFixed(1)} m/s`,
             a: scoreWind(wA), b: scoreWind(wB),
         },
         {
-            label: 'Úrkoma', weightLabel: '33%',
+            label: 'Úrkoma', weight: WT.rain, weightLabel: '35%',
             detail: `${rA.toFixed(1)} á móti ${rB.toFixed(1)} mm/klst`,
             a: scoreRain(rA), b: scoreRain(rB),
         },
+        {
+            label: 'Sól', weight: WT.sun / 100, weightLabel: '15%',
+            detail: sun.active ? `${Math.round(solA)} á móti ${Math.round(solB)} W/m²` : 'ekki uppi núna',
+            a: (sun.a / WT.sun) * 100, b: (sun.b / WT.sun) * 100,
+        },
+        {
+            label: 'Hiti', weight: WT.temp, weightLabel: '15%',
+            detail: `${tA.toFixed(1)}°C á móti ${tB.toFixed(1)}°C`,
+            a: scoreTemp(tA), b: scoreTemp(tB),
+        },
     ];
 
-    const sun = sunBonus(dA.now.solarradiation ?? 0, dB.now.solarradiation ?? 0);
-
     const totals = {
-        a: parts.reduce((s, p) => s + p.a, 0) / 3 + sun.a,
-        b: parts.reduce((s, p) => s + p.b, 0) / 3 + sun.b,
+        a: parts.reduce((s, p) => s + p.weight * p.a, 0),
+        b: parts.reduce((s, p) => s + p.weight * p.b, 0),
     };
 
     /* --- score the stretch both stations actually covered --- */
@@ -1047,6 +1186,10 @@ async function run() {
     renderVerdict(dA, dB, totals);
     renderScores(parts, totals, sun);
     renderDaily(sA, sB, win);
+
+    // Nýjasta staðan, geymd fyrir deilimyndina.
+    liveState = { dA, dB, verdict: document.getElementById('verdictNow').textContent };
+    document.getElementById('shareCard').disabled = false;
 
     /* --- charts --- */
     const temp = alignSeries(dA.history, dB.history, r => r.tempf == null ? null : fToC(r.tempf));
@@ -1072,6 +1215,272 @@ async function run() {
     status.textContent = `Uppfært ${stamp}`;
 }
 
+/* ------------------------------------------------------- einvígi og met */
+let liveState = null;
+let dailyData = null;
+let duelYm = Vedur.monthKey(Vedur.todayKey());
+
+const monthLabel = ym => `${Vedur.MONTHS[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`;
+const shiftMonth = (ym, n) => {
+    const d = new Date(Date.UTC(Number(ym.slice(0, 4)), Number(ym.slice(5, 7)) - 1 + n, 1));
+    return d.toISOString().slice(0, 7);
+};
+
+function renderDuel() {
+    const box = document.getElementById('duel');
+    box.style.display = '';
+
+    const today = Vedur.todayKey();
+    const nowYm = Vedur.monthKey(today);
+    const all = dailyData ? Vedur.duelAll(dailyData) : { tally: { a: 0, b: 0, tie: 0, played: 0 }, first: null };
+    const firstYm = all.first ? Vedur.monthKey(all.first) : nowYm;
+
+    document.getElementById('duelMonth').textContent = monthLabel(duelYm);
+    document.getElementById('duelPrev').disabled = duelYm <= firstYm;
+    document.getElementById('duelNext').disabled = duelYm >= nowYm;
+
+    const month = dailyData ? Vedur.duelMonth(dailyData, duelYm)
+                            : { days: [], tally: { a: 0, b: 0, tie: 0, played: 0 } };
+    const t = month.tally;
+    document.getElementById('duelA').textContent = t.played ? t.a : '–';
+    document.getElementById('duelB').textContent = t.played ? t.b : '–';
+
+    const past = duelYm < nowYm;
+    document.getElementById('duelLead').textContent = !t.played ? ''
+        : t.a === t.b ? (past ? 'Jafnt í lokin' : 'Hnífjafnt')
+        : `${Vedur.STATIONS[t.a > t.b ? 'a' : 'b'].name} ${past ? 'vann mánuðinn' : 'leiðir'}`;
+
+    // Undirlína: jafntefli og úrslit gærdagsins.
+    const bits = [];
+    if (!dailyData) bits.push('Dagsagan er ekki tilbúin enn. Hún uppfærist á hverri nóttu.');
+    else if (!t.played) bits.push('Enginn dagur dæmdur enn í þessum mánuði.');
+    else {
+        if (t.tie) bits.push(t.tie === 1 ? '1 jafntefli' : `${t.tie} jafntefli`);
+        const y = month.days.find(d => d.key === Vedur.addDays(today, -1));
+        if (y && y.score) {
+            const s = y.score;
+            bits.push(s.winner === 'tie'
+                ? `í gær varð jafntefli, ${Math.round(s.a)} á móti ${Math.round(s.b)}`
+                : `í gær vann ${Vedur.STATIONS[s.winner].name}, ` +
+                  `${Math.round(Math.max(s.a, s.b))} á móti ${Math.round(Math.min(s.a, s.b))}`);
+        }
+    }
+    const sub = bits.join(' · ');
+    document.getElementById('duelSub').textContent = sub.charAt(0).toUpperCase() + sub.slice(1);
+
+    // Dagaræman: einn reitur á dag, litaður eftir sigurvegara.
+    const y = Number(duelYm.slice(0, 4)), m = Number(duelYm.slice(5, 7));
+    const byKey = Object.fromEntries(month.days.map(d => [d.key, d]));
+    let cells = '';
+    for (let day = 1; day <= Vedur.daysInMonth(y, m); day++) {
+        const key = `${duelYm}-${Vedur.pad(day)}`;
+        const d = byKey[key];
+        let cls = '', title = Vedur.shortDate(key);
+        if (d && d.score) {
+            cls = d.score.winner;
+            title += d.score.winner === 'tie'
+                ? `: jafntefli (${Math.round(d.score.a)} / ${Math.round(d.score.b)})`
+                : `: ${Vedur.STATIONS[d.score.winner].name} vann (Árbær ${Math.round(d.score.a)}, Vík ${Math.round(d.score.b)})`;
+        } else if (key >= today) {
+            cls = 'future';
+        } else {
+            title += ': ekki nóg af mælingum';
+        }
+        cells += `<div class="duel-day ${cls}" title="${title}">${day}</div>`;
+    }
+    document.getElementById('duelStrip').innerHTML = cells;
+
+    document.getElementById('duelFoot').innerHTML = all.tally.played
+        ? `Frá upphafi (${Vedur.shortDate(all.first)}): Árbær <b>${all.tally.a}</b> &ndash; <b>${all.tally.b}</b> Vík` +
+          (all.tally.tie ? `, ${all.tally.tie} jafntefli` : '')
+        : 'Einvígið hefst um leið og fyrsti heili dagurinn er kominn í hús.';
+}
+
+function renderRecords() {
+    if (!dailyData) return;
+    const year = Number(Vedur.todayKey().slice(0, 4));
+    const rA = Vedur.records(dailyData, 'a', year);
+    const rB = Vedur.records(dailyData, 'b', year);
+    if (!rA && !rB) return;
+
+    const today = Vedur.todayKey();
+    const fresh = key => key && key >= Vedur.addDays(today, -7);
+    const cell = (rec, fmt, prefix) => {
+        if (!rec) return '<div class="v">—</div>';
+        return `<div class="v">${fresh(rec.key) ? '<span class="rec-new">nýtt</span>' : ''}${fmt(rec.value)}` +
+               `<small>${prefix || ''}${Vedur.shortDate(rec.key)}</small></div>`;
+    };
+    const rows = [
+        ['Hlýjast',          'warmest',  v => v.toFixed(1) + '°C'],
+        ['Kaldast',          'coldest',  v => v.toFixed(1) + '°C'],
+        ['Mesta hviða',      'gust',     v => v.toFixed(1) + ' m/s'],
+        ['Blautasti dagur',  'wettest',  v => v.toFixed(1) + ' mm'],
+        ['Mest sólskin',     'sunniest', v => v.toFixed(1) + ' klst'],
+        ['Lengsti þurrkur',  'dry',      v => v + (v === 1 ? ' dagur' : ' dagar'), 'til '],
+    ];
+
+    let out = '<div class="h">&nbsp;</div><div class="h num">Árbær</div><div class="h num">Vík</div>';
+    rows.forEach(([label, key, fmt, prefix]) => {
+        out += `<div class="k">${label}</div>` +
+               cell(rA && rA[key], fmt, prefix) + cell(rB && rB[key], fmt, prefix);
+    });
+
+    document.getElementById('recTitle').textContent = `Metaveggurinn ${year}`;
+    document.getElementById('recGrid').innerHTML = out;
+    const since = r => r ? `frá ${Vedur.shortDate(r.first)} (${r.count} dagar)` : 'engin gögn';
+    document.getElementById('recNote').textContent =
+        `Árbær ${since(rA)}, Vík ${since(rB)}. Merkið „nýtt" þýðir að metið féll á síðustu sjö dögum.`;
+    document.getElementById('records').style.display = '';
+}
+
+async function initDaily() {
+    try { dailyData = await Vedur.loadDaily(); }
+    catch (e) { dailyData = null; }
+    renderDuel();
+    renderRecords();
+}
+
+document.getElementById('duelPrev').addEventListener('click', () => { duelYm = shiftMonth(duelYm, -1); renderDuel(); });
+document.getElementById('duelNext').addEventListener('click', () => { duelYm = shiftMonth(duelYm, 1); renderDuel(); });
+
+/* ----------------------------------------------------------- deilimynd */
+// Teiknuð beint á canvas í Story-stærð (1080 x 1920). Efstu 250 og neðstu
+// 340 punktarnir eru hafðir auðir, þar leggjast hnappar Instagram yfir.
+function fitText(ctx, text, maxWidth, size, weight) {
+    do { ctx.font = `${weight} ${size}px Gantari, sans-serif`; size -= 2; }
+    while (ctx.measureText(text).width > maxWidth && size > 24);
+}
+
+function tracked(ctx, text, x, y, px) {
+    // letterSpacing er ekki til í öllum vöfrum; án þess birtist textinn þéttari.
+    if ('letterSpacing' in ctx) ctx.letterSpacing = px + 'px';
+    ctx.fillText(text, x, y);
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+}
+
+async function drawShareCard() {
+    const W = 1080, H = 1920;
+    const CRUST = '#4A3524', TOASTED = '#8A6844', GOLD = '#D8B077', CRUMB = '#EDE4D3', FLOUR = '#F7F1E6';
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    if (document.fonts && document.fonts.load) {
+        try { await Promise.all([document.fonts.load('700 90px Gantari'), document.fonts.load('400 34px Gantari'),
+                                 document.fonts.load('600 28px Gantari'), document.fonts.load('600 120px Caveat')]); }
+        catch (e) { /* teiknum samt */ }
+    }
+
+    ctx.fillStyle = FLOUR;
+    ctx.fillRect(0, 0, W, H);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+
+    // Merkið: sama slóð og á síðunni, óbreytt, aðeins skalað.
+    const d = document.querySelector('.site-logo path').getAttribute('d');
+    const logoW = 440, s = logoW / 784;
+    ctx.save();
+    ctx.translate((W - logoW) / 2, 280);
+    ctx.scale(s, s);
+    ctx.translate(-404, -377);
+    ctx.fillStyle = CRUST;
+    ctx.fill(new Path2D(d), 'evenodd');
+    ctx.restore();
+
+    ctx.fillStyle = TOASTED;
+    ctx.font = '600 28px Gantari, sans-serif';
+    tracked(ctx, 'HVAR ER BETRA VEÐUR?', W / 2, 540, 6);
+
+    // Niðurstaðan í handskrift, eins og titlar á öðru ragna.is efni.
+    ctx.fillStyle = CRUST;
+    let size = 150;
+    do { ctx.font = `600 ${size}px Caveat, cursive`; size -= 4; }
+    while (ctx.measureText(liveState.verdict).width > 920 && size > 60);
+    ctx.fillText(liveState.verdict, W / 2, 668);
+
+    const now = new Date();
+    const stamp = `${Vedur.shortDate(Vedur.todayKey())} kl. ` +
+        now.toLocaleTimeString('is-IS', { hour: '2-digit', minute: '2-digit', timeZone: 'Atlantic/Reykjavik' });
+    ctx.fillStyle = TOASTED;
+    ctx.font = '400 34px Gantari, sans-serif';
+    ctx.fillText(stamp, W / 2, 730);
+
+    // Tvö spjöld, eitt fyrir hvora stöð.
+    const panel = (x, st, data, stripe) => {
+        const y = 810, w = 440, h = 430;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = CRUMB;
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.roundRect(x, y, w, h, 10); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = stripe;
+        ctx.fillRect(x, y + 10, 10, h - 20);
+
+        const n = data.now, cx = x + w / 2;
+        ctx.fillStyle = TOASTED;
+        ctx.font = '600 28px Gantari, sans-serif';
+        tracked(ctx, st.name.toUpperCase(), cx, y + 70, 5);
+
+        ctx.fillStyle = CRUST;
+        ctx.font = '700 130px Gantari, sans-serif';
+        ctx.fillText(fmtC(n.tempf) + '°', cx, y + 210);
+
+        ctx.font = '400 34px Gantari, sans-serif';
+        ctx.fillStyle = TOASTED;
+        const wind = mphToMs(n.windspdmph_avg10m ?? n.windspeedmph ?? 0).toFixed(1);
+        ctx.fillText(`Vindur ${wind} m/s`, cx, y + 300);
+        ctx.fillText(`Úrkoma ${fmtMm(n.hourlyrainin ?? 0)} mm/klst`, cx, y + 355);
+    };
+    panel(80, Vedur.STATIONS.a, liveState.dA, CRUST);
+    panel(560, Vedur.STATIONS.b, liveState.dB, GOLD);
+
+    // Staðan í einvígi mánaðarins, ef einhver dagur hefur verið dæmdur.
+    const ym = Vedur.monthKey(Vedur.todayKey());
+    const t = dailyData ? Vedur.duelMonth(dailyData, ym).tally : null;
+    if (t && t.played) {
+        ctx.fillStyle = TOASTED;
+        ctx.font = '600 28px Gantari, sans-serif';
+        tracked(ctx, `VEÐUREINVÍGIÐ Í ${Vedur.MONTHS[Number(ym.slice(5, 7)) - 1].toUpperCase()}`, W / 2, 1340, 6);
+        ctx.fillStyle = CRUST;
+        ctx.font = '700 84px Gantari, sans-serif';
+        ctx.fillText(`Árbær ${t.a} – ${t.b} Vík`, W / 2, 1445);
+    }
+
+    ctx.fillStyle = CRUST;
+    ctx.font = '700 38px Gantari, sans-serif';
+    ctx.fillText('vedur.ragna.is', W / 2, 1545);
+
+    return canvas;
+}
+
+document.getElementById('shareCard').addEventListener('click', async () => {
+    if (!liveState) return;
+    const btn = document.getElementById('shareCard');
+    const label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Bý til mynd…';
+    try {
+        const canvas = await drawShareCard();
+        const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        const file = new File([blob], `vedur-${Vedur.todayKey()}.png`, { type: 'image/png' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: 'Hvar er betra veður?', url: 'https://vedur.ragna.is/samanburdur/' });
+        } else {
+            // Tölvur og vafrar sem geta ekki deilt skrám: vista myndina.
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = file.name;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        }
+    } catch (e) {
+        if (!e || e.name !== 'AbortError') console.error(e);   // AbortError = hætt við að deila
+    }
+    btn.textContent = label;
+    btn.disabled = false;
+});
+
+initDaily();
 run();
 setInterval(run, 5 * 60 * 1000);   // refresh every five minutes
 </script>
