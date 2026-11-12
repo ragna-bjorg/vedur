@@ -217,7 +217,7 @@
         }
 
         .dashboard {
-            max-width: 1000px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 0 1rem;
             display: grid;
@@ -467,9 +467,14 @@
         }
 
         /* History section */
-        /* Vefmyndavél frá Víkurfjöru */
+        /* Staðan núna og vefmyndavél: hlið við hlið á breiðum skjá, annars staflað. */
+        .now-wrap {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
         .cam-section {
-            max-width: 1000px;
+            max-width: 560px;
             margin: 1.5rem auto 0;
             padding: 0 1rem;
         }
@@ -481,24 +486,26 @@
             font-size: 0.65rem;
             text-transform: uppercase;
             letter-spacing: 0.2em;
-            margin-bottom: 1rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border);
+            margin-bottom: 0.8rem;
         }
 
         .cam-frame {
             aspect-ratio: 16 / 9;
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 4px;
+            border-radius: 12px;
             overflow: hidden;
         }
 
-        .cam-frame iframe {
+        .cam-frame.cam-43 { aspect-ratio: 4 / 3; }
+
+        .cam-frame iframe,
+        .cam-frame img {
             width: 100%;
             height: 100%;
             border: 0;
             display: block;
+            object-fit: cover;
         }
 
         .cam-caption {
@@ -514,8 +521,22 @@
         .cam-caption b { color: var(--text); font-weight: 700; }
         .cam-caption a { color: var(--link); }
 
+        @media (min-width: 1200px) {
+            .now-wrap {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 430px;
+                gap: 1rem;
+                padding: 0 1rem;
+                align-items: start;
+            }
+            .now-wrap .dashboard { max-width: none; padding: 0; }
+            .now-wrap .cam-section { max-width: none; margin: 0; padding: 0; }
+            /* Sama hæð og „Uppfært" línan vinstra megin, svo myndin sitji jafnt spjöldunum. */
+            .now-wrap .cam-title { font-size: 0.75rem; letter-spacing: 0.12em; padding: 0.5rem; margin: 0; line-height: 1.15; }
+        }
+
         .history-section {
-            max-width: 1000px;
+            max-width: 1400px;
             margin: 1.5rem auto 0;
             padding: 0 1rem;
         }
@@ -534,7 +555,7 @@
 
         .history-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));   /* þrjú gröf í röð á breiðum skjá */
             gap: 1rem;
         }
 
@@ -652,7 +673,7 @@
 
         /* Veðurfréttir — forecast accuracy section */
         .vedurfrettir-section {
-            max-width: 1000px;
+            max-width: 1400px;
             margin: 2rem auto 0;
             padding: 0 1rem;
         }
@@ -809,7 +830,7 @@
 
         /* Forecast section */
         .forecast-section {
-            max-width: 1000px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 0 1rem 0.5rem;
         }
@@ -983,7 +1004,7 @@
 
         /* Share bar */
         .share-bar {
-            max-width: 1000px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 0.8rem 1rem;
             display: flex;
@@ -1204,6 +1225,7 @@
     </div>
 </div>
 
+<div class="now-wrap">
 <div id="app">
     <div class="loading">
         <div class="spinner"></div>
@@ -1221,6 +1243,7 @@
         <span id="camNow"></span>
         <span>Nýjasta mynd og síðasti sólarhringur · <a href="https://www.windy.com/webcams/1742579657" target="_blank" rel="noopener">Windy.com</a></span>
     </div>
+</div>
 </div>
 
 <div id="history" style="display:none;">
@@ -1582,7 +1605,9 @@
             }
         });
 
-        // -- Pressure --
+        // -- Pressure -- (falið ef stöðin sendir engan loftþrýsting)
+        const hasPressure = sorted.some(r => r.baromrelin != null);
+        document.getElementById('chartPressure').closest('.chart-card').style.display = hasPressure ? '' : 'none';
         const ctxPressure = document.getElementById('chartPressure').getContext('2d');
         charts.pressure = new Chart(ctxPressure, {
             type: 'line',
@@ -1789,8 +1814,11 @@
                     <div class="card-header">Loftþrýstingur</div>
                     <div class="metric-row">
                         <span class="metric-label">Loftþrýstingur</span>
-                        <span class="metric-value green">${convertPressure(d.baromrelin)}</span>
+                        <span class="metric-value green">${d.baromrelin == null && modelPressure != null
+                            ? modelPressure.toFixed(1) + ' hPa' : convertPressure(d.baromrelin)}</span>
                     </div>
+                    ${d.baromrelin == null && modelPressure != null
+                        ? '<div style="font-size:0.72rem;color:var(--text-dim);margin-top:0.6rem;line-height:1.4;">Úr veðurlíkani. Stöðin sendir ekki loftþrýsting.</div>' : ''}
                 </div>
 
                 <!-- 6. UV -->
@@ -1865,6 +1893,23 @@
     let stationLon = null;
     let historyData = null;
 
+    let modelPressure = null;
+
+    async function fetchModelPressure(lat, lon) {
+        try {
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=pressure_msl`);
+            if (!res.ok) return false;
+            const json = await res.json();
+            const v = json && json.current ? json.current.pressure_msl : null;
+            if (typeof v !== 'number') return false;
+            const changed = v !== modelPressure;
+            modelPressure = v;
+            return changed;
+        } catch (e) {
+            return false;
+        }
+    }
+
     async function fetchWeather() {
         if (CONFIG.API_KEY === 'YOUR_API_KEY_HERE' || CONFIG.APP_KEY === 'YOUR_APPLICATION_KEY_HERE') {
             showSetup();
@@ -1894,6 +1939,12 @@
             // Fetch forecast from Open-Meteo
             if (stationLat && stationLon) {
                 fetchForecast(stationLat, stationLon);
+            }
+
+            // Stöð án loftvogar (innistöðin mælir þrýstinginn): sækja hann úr
+            // veðurlíkani í staðinn og merkja hann sem slíkan.
+            if (device.lastData && device.lastData.baromrelin == null && stationLat && stationLon) {
+                fetchModelPressure(stationLat, stationLon).then(changed => { if (changed) renderDashboard(device); });
             }
 
             // Wait 2 seconds before history request to respect rate limit
