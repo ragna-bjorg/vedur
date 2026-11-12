@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       from:
-        description: 'Sækja allt upp á nýtt frá þessum degi (ÁÁÁÁ-MM-DD). Autt = bara það sem vantar.'
+        description: 'Sækja allt upp á nýtt aftur að þessum degi (ÁÁÁÁ-MM-DD). Autt = bara það sem vantar.'
         required: false
         default: ''
 
