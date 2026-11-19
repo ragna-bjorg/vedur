@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-18T07:43:28.269Z",
+ "updated": "2026-11-19T07:39:17.046Z",
  "stations": {
   "b": {
    "name": "Vík",
@@ -4044,6 +4044,30 @@
     "tMean": -0.1,
     "wMean": 2.8,
     "gustMax": 10.1,
+    "rain": 0,
+    "sunH": 0,
+    "n": 288,
+    "cov": 23.9
+   }
+  },
+  "2026-11-18": {
+   "b": {
+    "tMax": 4.9,
+    "tMin": 0.9,
+    "tMean": 3.2,
+    "wMean": 3.2,
+    "gustMax": 13,
+    "rain": 0,
+    "sunH": 0,
+    "n": 288,
+    "cov": 23.9
+   },
+   "a": {
+    "tMax": -1.9,
+    "tMin": -6.9,
+    "tMean": -5,
+    "wMean": 1.4,
+    "gustMax": 5,
     "rain": 0,
     "sunH": 0,
     "n": 288,
